@@ -1,4 +1,3 @@
-# webrtc-node-backend
+# WebRTC Express Backend
 
-This is a Node.js backend for a WebRTC application, providing user authentication and session management.
-
+This is an Express Backend for a WebRTC application. It provides the necessary APIs to handle signaling and media streaming for WebRTC connections.
