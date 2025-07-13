@@ -3,20 +3,15 @@ import { User } from '@prisma/client';
 import { v4 as uuidv4 } from 'uuid';
 import Redis from "../config/redisClient";
 import { JwtTokenPayload } from '../types/types';
+import { JWT_ACCESS_SECRET, JWT_REFRESH_SECRET, JWT_REFRESH_EXPIRATION_DAYS, JWT_ACCESS_EXPIRATION_MINUTES } from '../constants';
 
 class JwtUtils {
-    private static readonly accessSecret = JwtUtils.getEnv('JWT_ACCESS_SECRET');
-    private static readonly refreshSecret = JwtUtils.getEnv('JWT_REFRESH_SECRET');
-    private static readonly accessExpiration: number = Number(JwtUtils.getEnv('JWT_ACCESS_EXPIRATION_MINUTES')) || 15;
-    private static readonly refreshExpiration: number = Number(JwtUtils.getEnv('JWT_REFRESH_EXPIRATION_DAYS')) || 1;
+    private static readonly accessSecret = JWT_ACCESS_SECRET;
+    private static readonly refreshSecret = JWT_REFRESH_SECRET;
+    private static readonly accessExpiration: number = JWT_ACCESS_EXPIRATION_MINUTES || 15;
+    private static readonly refreshExpiration: number = JWT_REFRESH_EXPIRATION_DAYS || 1;
 
-    private static getEnv(key: string): string {
-        const value = process.env[key]!;
-        if (!value) {
-            throw new Error(`Missing environment variable: ${key}`);
-        }
-        return value;
-    }
+
 
     private static buildPayload(user: User): JwtTokenPayload {
         return {
