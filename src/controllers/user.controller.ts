@@ -3,7 +3,7 @@ import { User } from "@prisma/client";
 import JwtUtils from "../utils/jwt";
 import ResponseHandler from "../utils/responseHandler";
 import { StatusCodes } from "http-status-codes";
-import prisma from "../utils/prisma";
+import prisma from "../config/prisma";
 import { JWT_ACCESS_EXPIRATION_MINUTES, JWT_REFRESH_EXPIRATION_DAYS } from "../constants";
 import BcryptUtils from "../utils/bcrypt";
 import { loginSchema, registerSchema } from "../utils/zod";

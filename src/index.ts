@@ -1,6 +1,6 @@
 import express from 'express';
 
-import prisma from './utils/prisma';
+import prisma from './config/prisma';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import { PORT } from './constants';

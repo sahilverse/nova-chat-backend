@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import JwtUtils from "../utils/jwt";
 import ResponseHandler from "../utils/responseHandler";
-import prisma from "../utils/prisma";
+import prisma from "../config/prisma";
 import { JwtTokenPayload } from "../types/types";
 
 
