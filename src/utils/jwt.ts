@@ -1,7 +1,7 @@
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import { User } from '@prisma/client';
 import { v4 as uuidv4 } from 'uuid';
-import Redis from "../utils/redisClient";
+import Redis from "../config/redisClient";
 import { JwtTokenPayload } from '../types/types';
 
 class JwtUtils {
