@@ -22,7 +22,7 @@ export const initSocketIO = (server: HTTPServer) => {
     io.on('connection', (socket) => {
         handleSocketConnection(socket);
         handlePrivateMessage(io, socket);
-        handleTypingEvent(io, socket);
+        handleTypingEvent(socket);
 
     });
 

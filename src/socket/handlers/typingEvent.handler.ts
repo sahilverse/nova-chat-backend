@@ -6,10 +6,12 @@ import redis from "../../config/redisClient"
 const TYPING_CHANNEL_PREFIX = "typing:"
 const STOP_TYPING_CHANNEL_PREFIX = "stop-typing:"
 
-export const handleTypingEvent = (io: SocketIOServer, socket: Socket) => {
+
+
+export const handleTypingEvent = (socket: Socket) => {
     socket.on("typing", async (payload: TypingPayload) => {
         try {
-            const sender = (socket as any).user
+            const sender = socket.user;
 
             if (!sender || sender.id !== payload.fromUserId) {
                 return;
@@ -41,7 +43,7 @@ export const handleTypingEvent = (io: SocketIOServer, socket: Socket) => {
 
     socket.on("stop-typing", async (payload: TypingPayload) => {
         try {
-            const sender = (socket as any).user
+            const sender = socket.user
 
             if (!sender || sender.id !== payload.fromUserId) {
                 return
@@ -74,7 +76,7 @@ export const handleTypingEvent = (io: SocketIOServer, socket: Socket) => {
 
     socket.on("disconnect", async () => {
         try {
-            const sender = (socket as any).user
+            const sender = socket.user
             if (sender) {
                 await cleanupUserTypingState(sender.id, socket.id)
             }

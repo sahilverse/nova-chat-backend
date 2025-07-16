@@ -16,7 +16,7 @@ interface SuccessPayload {
 
 export const handlePrivateMessage = async (io: SocketIOServer, socket: Socket) => {
     socket.on(PRIVATE_MESSAGE_EVENT, async (payload: PrivateMessagePayload) => {
-        const sender = (socket as any).user;
+        const sender = socket.user;
 
         if (!sender) {
             return SocketResponseHandler.sendError(socket, PRIVATE_MESSAGE_EVENT, "Unauthorized");
@@ -57,15 +57,13 @@ export const handlePrivateMessage = async (io: SocketIOServer, socket: Socket) =
             await publishChatMessage(result.chat.id, socket.id, result.message);
 
             const recipientSocketId = await getSocketIdByUserId(payload.toUserId);
-            // Check if recipient is online
+
             if (recipientSocketId) {
-                // If recipient is online, join them to the chat room
                 const recipientSocket = io.sockets.sockets.get(recipientSocketId);
                 if (recipientSocket) {
                     recipientSocket.join(result.chat.id);
                 };
 
-                // Update message status to delivered
                 await prisma.messageStatusEntry.update({
                     where: {
                         messageId_userId: {
@@ -76,6 +74,8 @@ export const handlePrivateMessage = async (io: SocketIOServer, socket: Socket) =
                     data: { status: MessageStatus.DELIVERED },
                 });
             }
+
+
         } catch (error) {
             console.error("Error handling private message:", error);
             SocketResponseHandler.sendError(socket, PRIVATE_MESSAGE_EVENT, "Failed to send message");
