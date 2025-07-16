@@ -1,4 +1,4 @@
-import type { Socket, Server as SocketIOServer } from "socket.io"
+import type { Socket } from "socket.io"
 import type { TypingPayload, TypingEventPayload } from "../../types/socket.types"
 import redis from "../../config/redisClient"
 
