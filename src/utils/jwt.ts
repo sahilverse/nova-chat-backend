@@ -17,6 +17,7 @@ class JwtUtils {
         return {
             id: user.id,
             email: user.email,
+            profileImage: user.profileImage,
             name: user.name,
         };
     }

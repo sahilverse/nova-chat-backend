@@ -7,11 +7,150 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
+// ---------------- ENUMS ----------------
+
+enum CallType {
+    AUDIO
+    VIDEO
+}
+
+enum CallStatus {
+    ONGOING
+    COMPLETED
+    MISSED
+}
+
+enum MessageType {
+    TEXT
+    EMOJI
+    PHOTO
+    VIDEO
+    AUDIO
+}
+
+enum MessageStatus {
+    SENT
+    DELIVERED
+    READ
+}
+
+// ---------------- MODELS ----------------
 model User {
+    id           String    @id @default(cuid())
+    email        String    @unique
+    name         String
+    password     String?
+    profileImage String?
+    isOnline     Boolean   @default(false)
+    lastSeen     DateTime?
+    createdAt    DateTime  @default(now())
+    updatedAt    DateTime  @updatedAt
+
+    chatMembers       ChatMember[]
+    messages          Message[]            @relation("MessagesSent")
+    reactions         MessageReaction[]
+    messageStatuses   MessageStatusEntry[]
+    callsInitiated    Call[]               @relation("CallsInitiated")
+    callsParticipated Call[]               @relation("CallParticipants")
+    CallParticipants  CallParticipants[]
+}
+
+model Chat {
     id        String   @id @default(cuid())
-    name      String
-    email     String   @unique
-    password  String?
+    name      String?
+    isGroup   Boolean  @default(false)
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
+
+    members  ChatMember[]
+    messages Message[]
+    calls    Call[]
+}
+
+model ChatMember {
+    id       String   @id @default(cuid())
+    chatId   String
+    userId   String
+    joinedAt DateTime @default(now())
+
+    chat Chat @relation(fields: [chatId], references: [id])
+    user User @relation(fields: [userId], references: [id])
+
+    @@unique([chatId, userId])
+}
+
+model Message {
+    id        String      @id @default(cuid())
+    type      MessageType
+    content   String?
+    chatId    String
+    senderId  String
+    replyToId String?
+    createdAt DateTime    @default(now())
+    updatedAt DateTime    @updatedAt
+    deletedAt DateTime?
+
+    chat    Chat      @relation(fields: [chatId], references: [id])
+    sender  User      @relation("MessagesSent", fields: [senderId], references: [id])
+    replyTo Message?  @relation("MessageReplies", fields: [replyToId], references: [id])
+    replies Message[] @relation("MessageReplies")
+
+    reactions MessageReaction[]
+    statuses  MessageStatusEntry[]
+}
+
+model MessageReaction {
+    id        String   @id @default(cuid())
+    messageId String
+    userId    String
+    type      String // emoji type, e.g., "like", "heart"
+    createdAt DateTime @default(now())
+
+    message Message @relation(fields: [messageId], references: [id])
+    user    User    @relation(fields: [userId], references: [id])
+
+    @@unique([messageId, userId])
+}
+
+model MessageStatusEntry {
+    id        String        @id @default(cuid())
+    messageId String
+    userId    String
+    status    MessageStatus
+    updatedAt DateTime      @updatedAt
+
+    message Message @relation(fields: [messageId], references: [id])
+    user    User    @relation(fields: [userId], references: [id])
+
+    @@unique([messageId, userId])
+}
+
+model Call {
+    id          String     @id @default(cuid())
+    chatId      String
+    initiatorId String
+    startedAt   DateTime   @default(now())
+    endedAt     DateTime?
+    callType    CallType
+    callStatus  CallStatus
+    createdAt   DateTime   @default(now())
+    updatedAt   DateTime   @updatedAt
+
+    chat             Chat               @relation(fields: [chatId], references: [id])
+    initiator        User               @relation("CallsInitiated", fields: [initiatorId], references: [id])
+    participants     User[]             @relation("CallParticipants")
+    CallParticipants CallParticipants[]
+}
+
+model CallParticipants {
+    id       String    @id @default(cuid())
+    callId   String
+    userId   String
+    joinedAt DateTime  @default(now())
+    leftAt   DateTime?
+
+    call Call @relation(fields: [callId], references: [id])
+    user User @relation(fields: [userId], references: [id])
+
+    @@unique([callId, userId])
 }
