@@ -7,7 +7,7 @@ import { StatusCodes } from 'http-status-codes';
 export default class UserController {
     static async getUserProfile(req: Request, res: Response): Promise<any> {
         try {
-            const userId = (req as any).user?.id;
+            const userId = req.user?.id;
 
             if (!userId) return ResponseHandler.sendError(res, StatusCodes.UNAUTHORIZED, 'Unauthorized');
 
