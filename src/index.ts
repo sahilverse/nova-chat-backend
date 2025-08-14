@@ -3,7 +3,7 @@ import app from './app';
 import prisma from './config/prisma';
 import { PORT } from './constants';
 import { createServer } from 'http';
-import { initSocketIO } from './config/socket.config';
+
 
 const server = createServer(app);
 
@@ -12,10 +12,6 @@ const server = createServer(app);
 prisma.$connect()
     .then(() => {
         console.log('Connected to the database successfully');
-
-        // Initialize Socket.IO after successful database connection
-        initSocketIO(server);
-
         // Start the server
         server.listen(PORT, () => {
             console.log(`Server is running at http://localhost:${PORT}`);
