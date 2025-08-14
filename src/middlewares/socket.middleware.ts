@@ -5,10 +5,13 @@ import { JwtTokenPayload } from '../types/types';
 
 const socketAuth = async (socket: Socket, next: (err?: Error) => void) => {
     try {
-        const token = socket.handshake.auth?.token;
-
+        const token = socket.handshake.auth?.token || !(process.env.NODE_ENV === 'production') && socket.handshake.headers.token;
         if (!token) {
-            return next(new Error('Authentication token not provided'));
+            const error = new Error('Authentication token not provided');
+            console.error('Socket auth error:', error.message);
+            socket.disconnect();
+            return next(error);
+
         }
 
         const { id } = JwtUtils.verifyAccessToken(token);
@@ -26,14 +29,21 @@ const socketAuth = async (socket: Socket, next: (err?: Error) => void) => {
         });
 
         if (!user) {
-            return next(new Error('Authorization token is invalid'));
+            const error = new Error('User not found');
+            console.error('Socket auth error:', error.message);
+            socket.disconnect();
+            return next(error);
         }
 
 
-        (socket as any).user = user;
+        socket.user = user;
         next();
     } catch (error) {
-        next(new Error('Invalid authorization token'));
+        console.error('Socket auth error:', error instanceof Error ? error.message : 'Unknown error');
+
+        const authError = new Error('Invalid authorization token');
+        socket.disconnect();
+        next(authError);
     }
 };
 
