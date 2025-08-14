@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
-import JwtUtils from "../utils/jwt";
-import ResponseHandler from "../utils/responseHandler";
-import prisma from "../config/prisma";
+import { JwtUtils } from "../utils";
+import { ResponseHandler } from "../utils";
+import { prisma } from "../config";
 import { JwtTokenPayload } from "../types/types";
 import { StatusCodes } from "http-status-codes";
 

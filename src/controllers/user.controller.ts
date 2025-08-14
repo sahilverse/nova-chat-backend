@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
-import prisma from '../config/prisma';
-import ResponseHandler from '../utils/responseHandler';
+import { prisma } from '../config';
+import { ResponseHandler } from '../utils';
 import { StatusCodes } from 'http-status-codes';
 
 

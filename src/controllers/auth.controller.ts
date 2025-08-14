@@ -1,12 +1,12 @@
 import { Request, Response } from "express";
 import { User } from "@prisma/client";
-import JwtUtils from "../utils/jwt";
-import ResponseHandler from "../utils/responseHandler";
+import { JwtUtils } from "../utils";
+import { ResponseHandler } from "../utils";
 import { StatusCodes } from "http-status-codes";
-import prisma from "../config/prisma";
+import { prisma } from "../config";
 import { JWT_ACCESS_EXPIRATION_MINUTES, JWT_REFRESH_EXPIRATION_DAYS } from "../constants";
-import BcryptUtils from "../utils/bcrypt";
-import { loginSchema, registerSchema } from "../utils/zod";
+import { BcryptUtils } from "../utils";
+import { loginSchema, registerSchema } from "../utils";
 
 class AuthController {
 

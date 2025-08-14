@@ -1,6 +1,6 @@
 import { Socket } from 'socket.io';
-import prisma from '../config/prisma';
-import JwtUtils from '../utils/jwt';
+import { prisma } from '../config';
+import { JwtUtils } from '../utils';
 import { JwtTokenPayload } from '../types/types';
 
 const socketAuth = async (socket: Socket, next: (err?: Error) => void) => {
