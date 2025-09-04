@@ -39,14 +39,14 @@ export default class UserController {
         try {
             const user = await prisma.user.findUnique({
                 where: {
-                    id: req.params.id
+                    id: req.params.id,
+                    isActive: true
                 },
                 select: {
                     id: true,
                     name: true,
                     email: true,
                     profileImage: true,
-                    isActive: true,
                     lastSeen: true,
                 }
             });
@@ -69,7 +69,7 @@ export default class UserController {
 
         try {
             const where = search
-                ? { name: { contains: search, mode: Prisma.QueryMode.insensitive } }
+                ? { name: { contains: search, mode: Prisma.QueryMode.insensitive }, isActive: true }
                 : {};
 
             const users = await prisma.user.findMany({
@@ -83,7 +83,6 @@ export default class UserController {
                     name: true,
                     email: true,
                     profileImage: true,
-                    isActive: true,
                     lastSeen: true,
                 },
             });
