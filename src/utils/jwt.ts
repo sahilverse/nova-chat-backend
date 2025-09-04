@@ -2,7 +2,6 @@ import jwt, { JwtPayload } from 'jsonwebtoken';
 import { User } from '@prisma/client';
 import { v4 as uuidv4 } from 'uuid';
 import Redis from "../config/redisClient";
-import { JwtTokenPayload } from '../types/types';
 import { JWT_ACCESS_SECRET, JWT_REFRESH_SECRET, JWT_REFRESH_EXPIRATION_DAYS, JWT_ACCESS_EXPIRATION_MINUTES } from '../constants';
 
 class JwtUtils {
@@ -11,19 +10,9 @@ class JwtUtils {
     private static readonly accessExpiration: number = JWT_ACCESS_EXPIRATION_MINUTES || 15;
     private static readonly refreshExpiration: number = JWT_REFRESH_EXPIRATION_DAYS || 1;
 
-
-
-    private static buildPayload(user: User): JwtTokenPayload {
-        return {
-            id: user.id,
-            email: user.email,
-            profileImage: user.profileImage,
-            name: user.name,
-        };
-    }
-
+    
     public static generateAccessToken(user: User): string {
-        return jwt.sign(this.buildPayload(user), this.accessSecret, {
+        return jwt.sign({ id: user.id }, this.accessSecret, {
             expiresIn: `${this.accessExpiration}m`,
         });
     }
@@ -32,7 +21,7 @@ class JwtUtils {
         const jti = uuidv4();
         const token = jwt.sign(
             {
-                ...this.buildPayload(user),
+                id: user.id,
                 jti,
             },
             this.refreshSecret,
