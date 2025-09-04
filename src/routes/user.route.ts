@@ -18,7 +18,7 @@ router.use(authMiddleware);
  * @swagger
  * /users:
  *   get:
- *     summary: Get all users (optional search)
+ *     summary: Get users with optional search and cursor-based pagination
  *     tags: [Users]
  *     security:
  *       - bearerAuth: []
@@ -28,24 +28,43 @@ router.use(authMiddleware);
  *         schema:
  *           type: string
  *         description: Search users by name
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Number of users to fetch per request
+ *       - in: query
+ *         name: after
+ *         schema:
+ *           type: string
+ *         description: Cursor (last user ID) from previous request
  *     responses:
  *       200:
- *         description: List of users
+ *         description: List of users with cursor
  *         content:
  *           application/json:
  *             schema:
- *               type: array
- *               items:
- *                 type: object
- *                 properties:
- *                   id:
- *                     type: string
- *                   name:
- *                     type: string
- *                   email:
- *                     type: string
- *                   profileImage:
- *                     type: string
+ *               type: object
+ *               properties:
+ *                 users:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                       name:
+ *                         type: string
+ *                       email:
+ *                         type: string
+ *                       profileImage:
+ *                         type: string
+ *                 nextCursor:
+ *                   type: string
+ *                   nullable: true
+ *                 limit:
+ *                   type: integer
  *       401:
  *         description: Unauthorized
  *       500:

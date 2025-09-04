@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { prisma } from '../config';
 import { ResponseHandler } from '../utils';
 import { StatusCodes } from 'http-status-codes';
+import { Prisma } from '@prisma/client';
 
 
 export default class UserController {
@@ -37,28 +38,34 @@ export default class UserController {
 
     static async getUsers(req: Request, res: Response): Promise<any> {
         const search = req.query.search as string | undefined;
+        const limit = parseInt(req.query.limit as string) || 10;
+        const after = req.query.after as string | undefined;
 
-        let users;
         try {
-            if (search) {
-                users = await prisma.user.findMany({
-                    where: {
-                        name: {
-                            contains: search,
-                            mode: 'insensitive',
-                        },
-                    },
-                });
-            } else {
-                users = await prisma.user.findMany();
-            }
+            const where = search
+                ? { name: { contains: search, mode: Prisma.QueryMode.insensitive } }
+                : {};
 
-            return ResponseHandler.sendResponse(res, StatusCodes.OK, 'Users fetched successfully', users);
+            const users = await prisma.user.findMany({
+                take: limit,
+                skip: after ? 1 : 0,
+                cursor: after ? { id: after } : undefined,
+                where,
+                orderBy: { id: 'asc' },
+            });
+
+            const nextCursor = users.length ? users[users.length - 1].id : null;
+
+            return ResponseHandler.sendResponse(res, StatusCodes.OK, 'Users fetched successfully', {
+                users,
+                nextCursor,
+                limit,
+            });
         } catch (error) {
             return ResponseHandler.sendError(res, StatusCodes.INTERNAL_SERVER_ERROR, 'Failed to fetch users');
         }
-
     }
+
 
 
 
