@@ -1,7 +1,7 @@
 import { Socket } from 'socket.io';
 import { prisma } from '../config';
 import { JwtUtils } from '../utils';
-import { JwtTokenPayload } from '../types/types';
+
 
 const socketAuth = async (socket: Socket, next: (err?: Error) => void) => {
     try {
@@ -17,14 +17,14 @@ const socketAuth = async (socket: Socket, next: (err?: Error) => void) => {
         const { id } = JwtUtils.verifyAccessToken(token);
 
 
-        const user: JwtTokenPayload | null = await prisma.user.findUnique({
+        const user = await prisma.user.findUnique({
             where: { id },
             select: {
                 id: true,
-                email: true,
                 name: true,
-                createdAt: true,
-                updatedAt: true,
+                email: true,
+                profileImage: true,
+                isActive: true,
             },
         });
 
