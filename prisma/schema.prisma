@@ -35,13 +35,14 @@ enum MessageStatus {
 }
 
 // ---------------- MODELS ----------------
+
 model User {
     id           String    @id @default(cuid())
     email        String    @unique
     name         String
     password     String?
     profileImage String?
-    isOnline     Boolean   @default(false)
+    isActive     Boolean   @default(true)
     lastSeen     DateTime?
     createdAt    DateTime  @default(now())
     updatedAt    DateTime  @updatedAt
@@ -77,6 +78,7 @@ model ChatMember {
     user User @relation(fields: [userId], references: [id])
 
     @@unique([chatId, userId])
+    @@index([userId])
 }
 
 model Message {
@@ -95,8 +97,21 @@ model Message {
     replyTo Message?  @relation("MessageReplies", fields: [replyToId], references: [id])
     replies Message[] @relation("MessageReplies")
 
-    reactions MessageReaction[]
-    statuses  MessageStatusEntry[]
+    attachments Attachment[]
+    reactions   MessageReaction[]
+    statuses    MessageStatusEntry[]
+
+    @@index([chatId, createdAt])
+}
+
+model Attachment {
+    id        String      @id @default(cuid())
+    messageId String
+    type      MessageType
+    url       String
+    createdAt DateTime    @default(now())
+
+    message Message @relation(fields: [messageId], references: [id])
 }
 
 model MessageReaction {
@@ -123,6 +138,7 @@ model MessageStatusEntry {
     user    User    @relation(fields: [userId], references: [id])
 
     @@unique([messageId, userId])
+    @@index([messageId, userId])
 }
 
 model Call {
