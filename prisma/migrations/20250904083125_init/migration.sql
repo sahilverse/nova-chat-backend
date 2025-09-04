@@ -17,6 +17,8 @@ CREATE TABLE "User" (
     "name" TEXT NOT NULL,
     "password" TEXT,
     "profileImage" TEXT,
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "lastSeen" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -60,6 +62,17 @@ CREATE TABLE "Message" (
 );
 
 -- CreateTable
+CREATE TABLE "Attachment" (
+    "id" TEXT NOT NULL,
+    "messageId" TEXT NOT NULL,
+    "type" "MessageType" NOT NULL,
+    "url" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "Attachment_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "MessageReaction" (
     "id" TEXT NOT NULL,
     "messageId" TEXT NOT NULL,
@@ -88,6 +101,7 @@ CREATE TABLE "Call" (
     "initiatorId" TEXT NOT NULL,
     "startedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "endedAt" TIMESTAMP(3),
+    "duration" INTEGER,
     "callType" "CallType" NOT NULL,
     "callStatus" "CallStatus" NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -119,10 +133,19 @@ CREATE TABLE "_CallParticipants" (
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
 -- CreateIndex
+CREATE INDEX "ChatMember_userId_idx" ON "ChatMember"("userId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "ChatMember_chatId_userId_key" ON "ChatMember"("chatId", "userId");
 
 -- CreateIndex
+CREATE INDEX "Message_chatId_createdAt_idx" ON "Message"("chatId", "createdAt");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "MessageReaction_messageId_userId_key" ON "MessageReaction"("messageId", "userId");
+
+-- CreateIndex
+CREATE INDEX "MessageStatusEntry_messageId_userId_idx" ON "MessageStatusEntry"("messageId", "userId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "MessageStatusEntry_messageId_userId_key" ON "MessageStatusEntry"("messageId", "userId");
@@ -147,6 +170,9 @@ ALTER TABLE "Message" ADD CONSTRAINT "Message_senderId_fkey" FOREIGN KEY ("sende
 
 -- AddForeignKey
 ALTER TABLE "Message" ADD CONSTRAINT "Message_replyToId_fkey" FOREIGN KEY ("replyToId") REFERENCES "Message"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Attachment" ADD CONSTRAINT "Attachment_messageId_fkey" FOREIGN KEY ("messageId") REFERENCES "Message"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "MessageReaction" ADD CONSTRAINT "MessageReaction_messageId_fkey" FOREIGN KEY ("messageId") REFERENCES "Message"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
