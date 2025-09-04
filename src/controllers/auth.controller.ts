@@ -95,9 +95,6 @@ class AuthController {
 
             return ResponseHandler.sendResponse(res, StatusCodes.CREATED, "User registered successfully");
         } catch (error) {
-            if (error instanceof Error && "errors" in error) {
-                return ResponseHandler.sendError(res, StatusCodes.BAD_REQUEST, (error as any).errors);
-            }
             return ResponseHandler.sendError(res, StatusCodes.INTERNAL_SERVER_ERROR, "Error registering user");
         }
     }
@@ -112,10 +109,6 @@ class AuthController {
         }
 
         const { email, password } = result.data;
-
-        if (!email || !password) {
-            return ResponseHandler.sendError(res, StatusCodes.BAD_REQUEST, "Email and password are required");
-        }
 
         try {
             const user = await prisma.user.findUnique({ where: { email } });
@@ -164,9 +157,6 @@ class AuthController {
                 },
             });
         } catch (error) {
-            if (error instanceof ZodError) {
-                return ResponseHandler.sendError(res, StatusCodes.BAD_REQUEST, "Invalid request data");
-            }
             return ResponseHandler.sendError(res, StatusCodes.INTERNAL_SERVER_ERROR, "Error logging in");
         }
     }
