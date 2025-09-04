@@ -5,6 +5,7 @@ import { StatusCodes } from 'http-status-codes';
 import { Prisma } from '@prisma/client';
 
 
+
 export default class UserController {
     static async getUserProfile(req: Request, res: Response): Promise<any> {
         try {
@@ -12,9 +13,21 @@ export default class UserController {
 
             if (!userId) return ResponseHandler.sendError(res, StatusCodes.UNAUTHORIZED, 'Unauthorized');
 
-            const user = await prisma.user.findUnique({ where: { id: userId } });
+            const user = await prisma.user.findUnique({
+                where: { id: userId },
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    profileImage: true,
+                    isActive: true,
+
+                    createdAt: true,
+                },
+            });
 
             if (!user) return ResponseHandler.sendError(res, StatusCodes.NOT_FOUND, 'User not found');
+
 
             return ResponseHandler.sendResponse(res, StatusCodes.OK, 'User fetched successfully', user);
         } catch (error) {
@@ -24,9 +37,22 @@ export default class UserController {
 
     static async getUserById(req: Request, res: Response): Promise<any> {
         try {
-            const user = await prisma.user.findUnique({ where: { id: req.params.id } });
+            const user = await prisma.user.findUnique({
+                where: {
+                    id: req.params.id
+                },
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    profileImage: true,
+                    isActive: true,
+                    lastSeen: true,
+                }
+            });
 
             if (!user) return ResponseHandler.sendError(res, StatusCodes.NOT_FOUND, 'User not found');
+
 
             return ResponseHandler.sendResponse(res, StatusCodes.OK, 'User fetched successfully', user);
 
@@ -52,6 +78,14 @@ export default class UserController {
                 cursor: after ? { id: after } : undefined,
                 where,
                 orderBy: { id: 'asc' },
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    profileImage: true,
+                    isActive: true,
+                    lastSeen: true,
+                },
             });
 
             const nextCursor = users.length ? users[users.length - 1].id : null;
