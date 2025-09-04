@@ -1,5 +1,5 @@
 {
-  "name": "webrtc-node-backend",
+  "name": "nova-chat-backend",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
@@ -36,6 +36,8 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^24.0.14",
     "@types/socket.io": "^3.0.1",
+    "@types/swagger-jsdoc": "^6.0.4",
+    "@types/swagger-ui-express": "^4.1.8",
     "prisma": "^6.12.0",
     "tsx": "^4.20.3",
     "typescript": "^5.8.3"
