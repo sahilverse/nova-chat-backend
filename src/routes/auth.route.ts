@@ -146,4 +146,22 @@ router.post("/register", AuthController.registerUser);
  */
 router.post("/login", AuthController.loginUser);
 
+
+/**
+ * @swagger
+ * /auth/logout:
+ *   post:
+ *     summary: Logout user
+ *     tags: [Auth]
+ * 
+ *     responses:
+ *       200:
+ *         description: Logout successful
+ *       401:
+ *         description: Unauthorized (invalid credentials)
+ *       500:
+ *         description: Internal server error
+ */
+router.post("/logout", AuthController.logoutUser);
+
 export default router;
