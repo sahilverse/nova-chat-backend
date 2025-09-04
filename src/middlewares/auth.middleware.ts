@@ -2,7 +2,6 @@ import { Request, Response, NextFunction } from "express";
 import { JwtUtils } from "../utils";
 import { ResponseHandler } from "../utils";
 import { prisma } from "../config";
-import { JwtTokenPayload } from "../types/types";
 import { StatusCodes } from "http-status-codes";
 
 
@@ -15,23 +14,24 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
     }
 
     try {
-        const { id } = JwtUtils.verifyAccessToken(token) as JwtTokenPayload;
-
-
+        const { id } = JwtUtils.verifyAccessToken(token);
 
         const user = await prisma.user.findUnique({
             where: { id },
             select: {
                 id: true,
-                email: true,
                 name: true,
+                email: true,
                 profileImage: true,
+                isActive: true,
             },
         });
+
 
         if (!user) {
             return ResponseHandler.sendError(res, StatusCodes.UNAUTHORIZED, "Authorization token is invalid");
         }
+
 
         req.user = user;
         next();
