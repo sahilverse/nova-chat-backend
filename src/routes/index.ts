@@ -12,7 +12,7 @@ router.use("/auth", authRoutes);
 router.use("/users", userRoutes);
 
 // Chat Routes
-router.use("/chat", chatRoutes);
+router.use("/chats", chatRoutes);
 
 
 
