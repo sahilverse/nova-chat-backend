@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import routes from './routes';
+import { setupSwagger } from './swagger';
 
 
 
@@ -17,5 +18,9 @@ app.use(cookieParser());
 
 // Routes
 app.use('/api', routes);
+
+
+// Swagger UI
+setupSwagger(app);
 
 export default app;

@@ -8,6 +8,7 @@ import { JWT_ACCESS_EXPIRATION_MINUTES, JWT_REFRESH_EXPIRATION_DAYS } from "../c
 import { BcryptUtils } from "../utils";
 import { loginSchema, registerSchema } from "../utils";
 import { access } from "fs";
+import { ZodError } from "zod";
 
 class AuthController {
 
@@ -70,17 +71,20 @@ class AuthController {
 
     //  Register a new user
     static async registerUser(req: Request, res: Response): Promise<any> {
-        const { name, email, password } = registerSchema.parse(req.body);
+        const result = registerSchema.safeParse(req.body);
 
-        if (!name || !email || !password) {
-            return ResponseHandler.sendError(res, StatusCodes.BAD_REQUEST, "Name, email and password are required");
+
+        if (!result.success) {
+            return ResponseHandler.sendValidationError(res, result);
         }
+
+        const { name, email, password } = result.data;
 
         try {
             const existingUser = await prisma.user.findUnique({ where: { email } });
 
             if (existingUser) {
-                return ResponseHandler.sendError(res, StatusCodes.CONFLICT, "User already exists");
+                return ResponseHandler.sendError(res, StatusCodes.CONFLICT, { "email": "Email already exists" });
             }
 
             const hashedPassword = await BcryptUtils.hashPassword(password);
@@ -91,14 +95,23 @@ class AuthController {
 
             return ResponseHandler.sendResponse(res, StatusCodes.CREATED, "User registered successfully");
         } catch (error) {
+            if (error instanceof Error && "errors" in error) {
+                return ResponseHandler.sendError(res, StatusCodes.BAD_REQUEST, (error as any).errors);
+            }
             return ResponseHandler.sendError(res, StatusCodes.INTERNAL_SERVER_ERROR, "Error registering user");
         }
     }
 
     // Login user
     static async loginUser(req: Request, res: Response): Promise<any> {
-        const { email, password } = loginSchema.parse(req.body);
+        const result = loginSchema.safeParse(req.body);
         const clientType = req.headers["x-client-type"] as string;
+
+        if (!result.success) {
+            return ResponseHandler.sendValidationError(res, result);
+        }
+
+        const { email, password } = result.data;
 
         if (!email || !password) {
             return ResponseHandler.sendError(res, StatusCodes.BAD_REQUEST, "Email and password are required");
@@ -108,11 +121,11 @@ class AuthController {
             const user = await prisma.user.findUnique({ where: { email } });
 
             if (!user) {
-                return ResponseHandler.sendError(res, StatusCodes.UNAUTHORIZED, "User not found");
+                return ResponseHandler.sendError(res, StatusCodes.UNAUTHORIZED, { "email": "Email not found" });
             }
 
             if (!(await BcryptUtils.comparePassword(password, user.password!))) {
-                return ResponseHandler.sendError(res, StatusCodes.UNAUTHORIZED, "Incorrect password");
+                return ResponseHandler.sendError(res, StatusCodes.UNAUTHORIZED, { "password": "Incorrect password" });
             }
 
             const accessToken = JwtUtils.generateAccessToken(user);
@@ -151,6 +164,9 @@ class AuthController {
                 },
             });
         } catch (error) {
+            if (error instanceof ZodError) {
+                return ResponseHandler.sendError(res, StatusCodes.BAD_REQUEST, "Invalid request data");
+            }
             return ResponseHandler.sendError(res, StatusCodes.INTERNAL_SERVER_ERROR, "Error logging in");
         }
     }
