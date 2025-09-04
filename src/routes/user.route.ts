@@ -21,7 +21,7 @@ router.use(authMiddleware);
  *     summary: Get users with optional search and cursor-based pagination
  *     tags: [Users]
  *     security:
- *       - bearerAuth: []
+ *       - BearerAuth: []
  *     parameters:
  *       - in: query
  *         name: search
@@ -79,7 +79,7 @@ router.get('/', UserController.getUsers);
  *     summary: Get the currently logged-in user's profile
  *     tags: [Users]
  *     security:
- *       - bearerAuth: []
+ *       - BearerAuth: []
  *     responses:
  *       200:
  *         description: Current user profile
@@ -112,7 +112,7 @@ router.get('/me', UserController.getUserProfile);
  *     summary: Get a user by ID
  *     tags: [Users]
  *     security:
- *       - bearerAuth: []
+ *       - BearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
