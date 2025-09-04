@@ -163,7 +163,7 @@ class AuthController {
 
     // Logout user
     static async logoutUser(req: Request, res: Response): Promise<any> {
-        const token = req.body?.refresh_token || req.cookies?.refresh_token;
+        const token = req.cookies?.refresh_token;
 
         if (!token) {
             return ResponseHandler.sendError(res, StatusCodes.UNAUTHORIZED, "Refresh token not provided");
@@ -173,7 +173,6 @@ class AuthController {
             await JwtUtils.revokeRefreshToken(token);
         } catch (e) { }
 
-        res.clearCookie("access_token");
         res.clearCookie("refresh_token");
 
         return ResponseHandler.sendResponse(res, StatusCodes.OK, "Logout successful");
