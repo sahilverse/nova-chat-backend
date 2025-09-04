@@ -7,12 +7,15 @@ import { prisma } from "../config";
 import { JWT_ACCESS_EXPIRATION_MINUTES, JWT_REFRESH_EXPIRATION_DAYS } from "../constants";
 import { BcryptUtils } from "../utils";
 import { loginSchema, registerSchema } from "../utils";
+import { access } from "fs";
 
 class AuthController {
 
     // Refresh user access token
     static async refreshToken(req: Request, res: Response): Promise<any> {
-        const token = req.body?.refresh_token || req.cookies?.refresh_token;
+        const clientType = req.headers["x-client-type"] as string;
+
+        const token = clientType === 'web' ? req.cookies?.refresh_token : req.body?.refresh_token;
 
         if (!token) {
             return ResponseHandler.sendError(res, StatusCodes.UNAUTHORIZED, "Refresh token not provided");
@@ -39,25 +42,22 @@ class AuthController {
         const newAccessToken = JwtUtils.generateAccessToken(user);
         const { token: newRefreshToken } = await JwtUtils.generateRefreshToken(user);
 
-        const accessMaxAge = JWT_ACCESS_EXPIRATION_MINUTES * 60 * 1000;
         const refreshMaxAge = JWT_REFRESH_EXPIRATION_DAYS * 24 * 60 * 60 * 1000;
 
-        res.cookie("access_token", newAccessToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "strict",
-            maxAge: accessMaxAge,
-        });
 
-        res.cookie("refresh_token", newRefreshToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "strict",
-            maxAge: refreshMaxAge,
-        });
 
-        if (req.cookies?.refresh_token) {
-            return ResponseHandler.sendResponse(res, StatusCodes.OK, "Tokens refreshed successfully", userData);
+        if (clientType === "web") {
+            res.cookie("refresh_token", newRefreshToken, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === "production",
+                sameSite: "strict",
+                maxAge: refreshMaxAge,
+            });
+
+            return ResponseHandler.sendResponse(res, StatusCodes.OK, "Tokens refreshed successfully", {
+                access_token: newAccessToken,
+                user: userData,
+            });
         }
 
         return ResponseHandler.sendResponse(res, StatusCodes.OK, "Tokens refreshed successfully", {
@@ -98,6 +98,7 @@ class AuthController {
     // Login user
     static async loginUser(req: Request, res: Response): Promise<any> {
         const { email, password } = loginSchema.parse(req.body);
+        const clientType = req.headers["x-client-type"] as string;
 
         if (!email || !password) {
             return ResponseHandler.sendError(res, StatusCodes.BAD_REQUEST, "Email and password are required");
@@ -117,22 +118,27 @@ class AuthController {
             const accessToken = JwtUtils.generateAccessToken(user);
             const { token: refreshToken } = await JwtUtils.generateRefreshToken(user);
 
-            const accessMaxAge = JWT_ACCESS_EXPIRATION_MINUTES * 60 * 1000;
             const refreshMaxAge = JWT_REFRESH_EXPIRATION_DAYS * 24 * 60 * 60 * 1000;
 
-            res.cookie("access_token", accessToken, {
-                httpOnly: true,
-                secure: process.env.NODE_ENV === "production",
-                sameSite: "strict",
-                maxAge: accessMaxAge,
-            });
 
-            res.cookie("refresh_token", refreshToken, {
-                httpOnly: true,
-                secure: process.env.NODE_ENV === "production",
-                sameSite: "strict",
-                maxAge: refreshMaxAge,
-            });
+            if (clientType !== "mobile") {
+                res.cookie("refresh_token", refreshToken, {
+                    httpOnly: true,
+                    secure: process.env.NODE_ENV === "production",
+                    sameSite: "strict",
+                    maxAge: refreshMaxAge,
+                });
+
+                return ResponseHandler.sendResponse(res, StatusCodes.OK, "Login successful", {
+                    access_token: accessToken,
+                    user: {
+                        id: user.id,
+                        name: user.name,
+                        email: user.email,
+                        profileImage: user.profileImage,
+                    },
+                });
+            }
 
             return ResponseHandler.sendResponse(res, StatusCodes.OK, "Login successful", {
                 access_token: accessToken,
