@@ -171,7 +171,9 @@ class AuthController {
 
         try {
             await JwtUtils.revokeRefreshToken(token);
-        } catch (e) { }
+        } catch (e) {
+            console.error("Logout error (revoke failed):", e);
+        }
 
         res.clearCookie("refresh_token");
 
