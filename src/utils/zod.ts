@@ -1,16 +1,16 @@
 import * as z from "zod";
 
 
-
-// loginSchema is used for validating user login input
+// loginSchema 
 export const loginSchema = z.object({
-    email: z.email().min(1, "Email is required"),
+    email: z
+        .email()
+        .min(1, "Email is required")
+        .transform((val) => val.trim().toLowerCase()),
     password: z.string().min(1, "Password is required"),
 });
 
-
-
-//  registerSchema is used for validating user registration input
+// registerSchema 
 export const registerSchema = loginSchema.extend({
     name: z.string().min(1, "Name is required"),
     confirmPassword: z
