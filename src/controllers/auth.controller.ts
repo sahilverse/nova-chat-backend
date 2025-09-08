@@ -4,11 +4,9 @@ import { JwtUtils } from "../utils";
 import { ResponseHandler } from "../utils";
 import { StatusCodes } from "http-status-codes";
 import { prisma } from "../config";
-import { JWT_ACCESS_EXPIRATION_MINUTES, JWT_REFRESH_EXPIRATION_DAYS } from "../constants";
+import { JWT_REFRESH_EXPIRATION_DAYS } from "../constants";
 import { BcryptUtils } from "../utils";
 import { loginSchema, registerSchema } from "../utils";
-import { access } from "fs";
-import { ZodError } from "zod";
 
 class AuthController {
 
@@ -27,7 +25,9 @@ class AuthController {
         try {
             const { id } = await JwtUtils.verifyRefreshToken(token);
 
-            user = await prisma.user.findUnique({ where: { id } });
+            user = await prisma.user.findUnique(
+                { where: { id } }
+            );
 
             if (!user) {
                 return ResponseHandler.sendError(res, StatusCodes.UNAUTHORIZED, "User not found");
@@ -40,8 +40,8 @@ class AuthController {
 
         const { password: _, ...userData } = user;
 
-        const newAccessToken = JwtUtils.generateAccessToken(user);
-        const { token: newRefreshToken } = await JwtUtils.generateRefreshToken(user);
+        const newAccessToken = JwtUtils.generateAccessToken(user.id);
+        const { token: newRefreshToken } = await JwtUtils.generateRefreshToken(user.id);
 
         const refreshMaxAge = JWT_REFRESH_EXPIRATION_DAYS * 24 * 60 * 60 * 1000;
 
@@ -121,8 +121,8 @@ class AuthController {
                 return ResponseHandler.sendError(res, StatusCodes.UNAUTHORIZED, { "password": "Incorrect password" });
             }
 
-            const accessToken = JwtUtils.generateAccessToken(user);
-            const { token: refreshToken } = await JwtUtils.generateRefreshToken(user);
+            const accessToken = JwtUtils.generateAccessToken(user.id);
+            const { token: refreshToken } = await JwtUtils.generateRefreshToken(user.id);
 
             const refreshMaxAge = JWT_REFRESH_EXPIRATION_DAYS * 24 * 60 * 60 * 1000;
 

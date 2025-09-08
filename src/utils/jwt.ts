@@ -10,18 +10,18 @@ class JwtUtils {
     private static readonly accessExpiration: number = JWT_ACCESS_EXPIRATION_MINUTES || 15;
     private static readonly refreshExpiration: number = JWT_REFRESH_EXPIRATION_DAYS || 1;
 
-    
-    public static generateAccessToken(user: User): string {
-        return jwt.sign({ id: user.id }, this.accessSecret, {
+
+    public static generateAccessToken(id: string): string {
+        return jwt.sign({ id }, this.accessSecret, {
             expiresIn: `${this.accessExpiration}m`,
         });
     }
 
-    public static async generateRefreshToken(user: User): Promise<{ token: string; jti: string }> {
+    public static async generateRefreshToken(id: string): Promise<{ token: string; jti: string }> {
         const jti = uuidv4();
         const token = jwt.sign(
             {
-                id: user.id,
+                id,
                 jti,
             },
             this.refreshSecret,
