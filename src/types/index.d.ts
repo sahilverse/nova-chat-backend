@@ -1,11 +1,11 @@
 import { User } from "@prisma/client";
-import { JwtTokenPayload } from "./types";
+import { AuthUser } from "./types";
 
 
 declare global {
     namespace Express {
         interface Request {
-            user?: JwtTokenPayload;
+            user?: AuthUser;
         }
     }
 }
@@ -13,6 +13,6 @@ declare global {
 
 declare module "socket.io" {
     interface Socket {
-        user?: JwtTokenPayload;
+        user?: AuthUser;
     }
 }
