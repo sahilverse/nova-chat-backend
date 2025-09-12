@@ -1,5 +1,4 @@
 import jwt, { JwtPayload } from 'jsonwebtoken';
-import { User } from '@prisma/client';
 import { v4 as uuidv4 } from 'uuid';
 import Redis from "../config/redisClient";
 import { JWT_ACCESS_SECRET, JWT_REFRESH_SECRET, JWT_REFRESH_EXPIRATION_DAYS, JWT_ACCESS_EXPIRATION_MINUTES } from '../constants';
