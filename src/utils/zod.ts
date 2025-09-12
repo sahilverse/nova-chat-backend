@@ -12,7 +12,7 @@ export const loginSchema = z.object({
 
 // registerSchema 
 export const registerSchema = loginSchema.extend({
-    name: z.string().min(1, "Name is required"),
+    name: z.string().min(1, "Name is required").refine((val) => val.trim()),
     confirmPassword: z
         .string()
         .min(6, "Confirm Password must be at least 6 characters"),
