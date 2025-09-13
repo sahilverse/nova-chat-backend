@@ -17,12 +17,12 @@ async function bootstrap() {
         await SocketManager.init(server);
         console.log("✅ Socket.IO initialized");
 
-        // Start server
+        // start server
         server.listen(PORT, () => {
             console.log(`🚀 Server is running at http://localhost:${PORT}`);
         });
 
-        // Graceful shutdown
+        // Handle graceful shutdown
         process.on("SIGINT", shutdown);
         process.on("SIGTERM", shutdown);
     } catch (error) {
