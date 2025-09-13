@@ -21,7 +21,7 @@ export class SocketManager {
 
         this.io = new SocketIOServer(server, {
             cors: {
-                origin: CLIENT_URL || "*",
+                origin: CLIENT_URL,
                 credentials: true,
             },
         });
