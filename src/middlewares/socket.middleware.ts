@@ -1,21 +1,19 @@
-import { Socket } from 'socket.io';
-import { prisma } from '../config';
-import { JwtUtils } from '../utils';
-
+import { Socket } from "socket.io";
+import { prisma } from "../config";
+import { JwtUtils } from "../utils";
 
 const socketAuth = async (socket: Socket, next: (err?: Error) => void) => {
     try {
-        const token = socket.handshake.auth?.token || !(process.env.NODE_ENV === 'production') && socket.handshake.headers.token;
-        if (!token) {
-            const error = new Error('Authentication token not provided');
-            console.error('Socket auth error:', error.message);
-            socket.disconnect();
-            return next(error);
+        let token = socket.handshake.auth?.token;
+        if (!token && process.env.NODE_ENV !== "production") {
+            token = socket.handshake.headers["token"] as string;
+        }
 
+        if (!token) {
+            return next(new Error("Authentication token not provided"));
         }
 
         const { id } = JwtUtils.verifyAccessToken(token);
-
 
         const user = await prisma.user.findUnique({
             where: { id },
@@ -29,23 +27,19 @@ const socketAuth = async (socket: Socket, next: (err?: Error) => void) => {
         });
 
         if (!user) {
-            const error = new Error('User not found');
-            console.error('Socket auth error:', error.message);
-            socket.disconnect();
-            return next(error);
+            return next(new Error("User not found"));
         }
 
-
         socket.user = user;
-        next();
-    } catch (error) {
-        console.error('Socket auth error:', error instanceof Error ? error.message : 'Unknown error');
 
-        const authError = new Error('Invalid authorization token');
-        socket.disconnect();
-        next(authError);
+        return next();
+    } catch (error) {
+        console.error(
+            "Socket auth error:",
+            error instanceof Error ? error.message : "Unknown error"
+        );
+        return next(new Error("Invalid authorization token"));
     }
 };
-
 
 export default socketAuth;
