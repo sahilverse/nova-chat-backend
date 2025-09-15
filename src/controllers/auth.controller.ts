@@ -20,14 +20,21 @@ class AuthController {
             return ResponseHandler.sendError(res, StatusCodes.UNAUTHORIZED, "Refresh token not provided");
         }
 
-        let user: User | null;
+        let user;
 
         try {
             const { id } = await JwtUtils.verifyRefreshToken(token);
 
-            user = await prisma.user.findUnique(
-                { where: { id } }
-            );
+            user = await prisma.user.findUnique({
+                where: { id },
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    profileImage: true,
+                    isActive: true,
+                },
+            });
 
             if (!user) {
                 return ResponseHandler.sendError(res, StatusCodes.UNAUTHORIZED, "User not found");
@@ -38,13 +45,10 @@ class AuthController {
             return ResponseHandler.sendError(res, StatusCodes.UNAUTHORIZED, "Invalid or revoked refresh token");
         }
 
-        const { password: _, ...userData } = user;
-
         const newAccessToken = JwtUtils.generateAccessToken(user.id);
         const { token: newRefreshToken } = await JwtUtils.generateRefreshToken(user.id);
 
         const refreshMaxAge = JWT_REFRESH_EXPIRATION_DAYS * 24 * 60 * 60 * 1000;
-
 
 
         if (clientType === "web") {
@@ -57,14 +61,14 @@ class AuthController {
 
             return ResponseHandler.sendResponse(res, StatusCodes.OK, "Tokens refreshed successfully", {
                 access_token: newAccessToken,
-                user: userData,
+                user
             });
         }
 
         return ResponseHandler.sendResponse(res, StatusCodes.OK, "Tokens refreshed successfully", {
             access_token: newAccessToken,
             refresh_token: newRefreshToken,
-            user: userData,
+            user
         });
     }
 
