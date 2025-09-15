@@ -5,9 +5,6 @@ import { JwtUtils } from "../utils";
 const socketAuth = async (socket: Socket, next: (err?: Error) => void) => {
     try {
         let token = socket.handshake.auth?.token;
-        if (!token && process.env.NODE_ENV !== "production") {
-            token = socket.handshake.headers["token"] as string;
-        }
 
         if (!token) {
             return next(new Error("Authentication token not provided"));
