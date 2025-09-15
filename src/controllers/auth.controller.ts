@@ -165,17 +165,16 @@ class AuthController {
     static async logoutUser(req: Request, res: Response): Promise<any> {
         const token = req.cookies?.refresh_token;
 
-        if (!token) {
-            return ResponseHandler.sendError(res, StatusCodes.UNAUTHORIZED, "Refresh token not provided");
-        }
-
-        try {
-            await JwtUtils.revokeRefreshToken(token);
-        } catch (e) {
-            console.error("Logout error (revoke failed):", e);
-        }
-
         res.clearCookie("refresh_token");
+
+        if (token) {
+            try {
+                await JwtUtils.revokeRefreshToken(token);
+            } catch (e) {
+                console.error("Logout error (revoke failed):", e);
+            }
+        }
+
 
         return ResponseHandler.sendResponse(res, StatusCodes.OK, "Logout successful");
     }
