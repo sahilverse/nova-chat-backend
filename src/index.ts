@@ -1,9 +1,9 @@
 import "dotenv/config";
 import app from "./app";
-import prisma from "./config/prisma";
+import { prisma } from "./config";
 import { PORT } from "./constants";
 import { createServer } from "http";
-import { SocketManager } from "./config/socket.config";
+import { SocketManager } from "./config";
 
 const server = createServer(app);
 

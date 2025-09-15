@@ -1,6 +1,6 @@
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
-import Redis from "../config/redisClient";
+import { redisClient } from "../config";
 import { JWT_ACCESS_SECRET, JWT_REFRESH_SECRET, JWT_REFRESH_EXPIRATION_DAYS, JWT_ACCESS_EXPIRATION_MINUTES } from '../constants';
 
 class JwtUtils {
@@ -29,7 +29,7 @@ class JwtUtils {
             }
         );
 
-        await Redis.set(`refresh_jti:${jti}`, 'valid', {
+        await redisClient.set(`refresh_jti:${jti}`, 'valid', {
             EX: this.refreshExpiration * 24 * 60 * 60,
         });
 
@@ -47,7 +47,7 @@ class JwtUtils {
         const jti = payload.jti;
         if (!jti) throw new Error('Refresh token missing jti');
 
-        const isValid = await Redis.get(`refresh_jti:${jti}`);
+        const isValid = await redisClient.get(`refresh_jti:${jti}`);
 
 
         if (!isValid) throw new Error('Refresh token has been revoked');
@@ -59,7 +59,7 @@ class JwtUtils {
         try {
             const decoded = jwt.verify(token, this.refreshSecret) as JwtPayload;
             const jti = decoded.jti;
-            if (jti) await Redis.del(`refresh_jti:${jti}`);
+            if (jti) await redisClient.del(`refresh_jti:${jti}`);
         } catch (err) {
             console.error('Error revoking refresh token:', err);
         }
