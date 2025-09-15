@@ -7,7 +7,7 @@ const socketAuth = async (socket: Socket, next: (err?: Error) => void) => {
         let token = socket.handshake.auth?.token;
 
         if (!token) {
-            return next(new Error("Authentication token not provided"));
+            return next(new Error("NO_TOKEN_PROVIDED"));
         }
 
         const { id } = JwtUtils.verifyAccessToken(token);
@@ -24,7 +24,7 @@ const socketAuth = async (socket: Socket, next: (err?: Error) => void) => {
         });
 
         if (!user) {
-            return next(new Error("User not found"));
+            return next(new Error("USER_NOT_FOUND"));
         }
 
         socket.user = user;
@@ -35,7 +35,7 @@ const socketAuth = async (socket: Socket, next: (err?: Error) => void) => {
             "Socket auth error:",
             error instanceof Error ? error.message : "Unknown error"
         );
-        return next(new Error("Invalid authorization token"));
+        return next(new Error("INVALID_TOKEN"));
     }
 };
 
