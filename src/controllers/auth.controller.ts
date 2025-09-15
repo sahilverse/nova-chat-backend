@@ -1,5 +1,4 @@
 import { Request, Response } from "express";
-import { User } from "@prisma/client";
 import { JwtUtils } from "../utils";
 import { ResponseHandler } from "../utils";
 import { StatusCodes } from "http-status-codes";
