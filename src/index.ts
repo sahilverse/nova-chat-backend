@@ -4,6 +4,7 @@ import { prisma } from "./config";
 import { PORT } from "./constants";
 import { createServer } from "http";
 import { SocketManager } from "./config";
+import { registerSocketHandlers } from "./socket";
 
 const server = createServer(app);
 
@@ -14,8 +15,11 @@ async function bootstrap() {
         console.log("✅ Connected to the database");
 
         // Init Socket.IO
-        await SocketManager.init(server);
+        const io = await SocketManager.init(server);
         console.log("✅ Socket.IO initialized");
+
+        // Register socket handlers
+        registerSocketHandlers(io);
 
         // start server
         server.listen(PORT, () => {

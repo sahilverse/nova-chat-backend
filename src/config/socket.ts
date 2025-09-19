@@ -29,13 +29,6 @@ export class SocketManager {
         this.io.adapter(createAdapter(this.pubClient, this.subClient));
         this.io.use(socketAuth);
 
-        this.io.on("connection", (socket) => {
-            console.log(`Socket connected: ${socket.id}`);
-            socket.on("disconnect", () => {
-                console.log(`Socket disconnected: ${socket.id}`);
-            });
-        });
-
         console.log("✅ Socket.IO Redis adapter initialized");
         return this.io;
     }
