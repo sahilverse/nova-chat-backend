@@ -11,7 +11,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "@prisma/client": "^6.12.0",
+    "@prisma/client": "^6.16.2",
     "@prisma/extension-accelerate": "^2.0.2",
     "@socket.io/redis-adapter": "^8.3.0",
     "bcryptjs": "^3.0.2",
@@ -41,7 +41,7 @@
     "@types/socket.io": "^3.0.1",
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-express": "^4.1.8",
-    "prisma": "^6.12.0",
+    "prisma": "^6.16.2",
     "tsx": "^4.20.3",
     "typescript": "^5.8.3"
   }
