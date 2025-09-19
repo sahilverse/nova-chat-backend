@@ -22,7 +22,6 @@ enum CallStatus {
 
 enum MessageType {
     TEXT
-    EMOJI
     PHOTO
     VIDEO
     AUDIO
@@ -48,7 +47,7 @@ model User {
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    chatMembers       ChatMember[]
+    chatMembers       UserChat[]
     messages          Message[]            @relation("MessagesSent")
     reactions         MessageReaction[]
     messageStatuses   MessageStatusEntry[]
@@ -65,20 +64,22 @@ model Chat {
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    members  ChatMember[]
+    members  UserChat[]
     messages Message[]
     calls    Call[]
 }
 
-model ChatMember {
-    id     String @id @default(cuid())
-    chatId String
-    userId String
+model UserChat {
+    id        String    @id @default(cuid())
+    chatId    String
+    userId    String
+    deletedAt DateTime?
+    archived  Boolean   @default(false)
+    muted     Boolean   @default(false)
+    joinedAt  DateTime  @default(now())
 
-    joinedAt DateTime @default(now())
-
-    chat Chat @relation(fields: [chatId], references: [id])
-    user User @relation(fields: [userId], references: [id])
+    chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
     @@unique([chatId, userId])
     @@index([userId])
@@ -96,7 +97,7 @@ model Message {
     updatedAt DateTime  @updatedAt
     deletedAt DateTime?
 
-    chat    Chat      @relation(fields: [chatId], references: [id])
+    chat    Chat      @relation(fields: [chatId], references: [id], onDelete: Cascade)
     sender  User      @relation("MessagesSent", fields: [senderId], references: [id])
     replyTo Message?  @relation("MessageReplies", fields: [replyToId], references: [id])
     replies Message[] @relation("MessageReplies")
@@ -116,7 +117,7 @@ model Attachment {
 
     createdAt DateTime @default(now())
 
-    message Message @relation(fields: [messageId], references: [id])
+    message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
 }
 
 model MessageReaction {
@@ -127,8 +128,8 @@ model MessageReaction {
 
     createdAt DateTime @default(now())
 
-    message Message @relation(fields: [messageId], references: [id])
-    user    User    @relation(fields: [userId], references: [id])
+    message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+    user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
     @@unique([messageId, userId])
 }
@@ -141,8 +142,8 @@ model MessageStatusEntry {
 
     updatedAt DateTime @updatedAt
 
-    message Message @relation(fields: [messageId], references: [id])
-    user    User    @relation(fields: [userId], references: [id])
+    message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+    user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
     @@unique([messageId, userId])
     @@index([messageId, userId])
@@ -161,8 +162,8 @@ model Call {
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    chat             Chat               @relation(fields: [chatId], references: [id])
-    initiator        User               @relation("CallsInitiated", fields: [initiatorId], references: [id])
+    chat             Chat               @relation(fields: [chatId], references: [id], onDelete: Cascade)
+    initiator        User               @relation("CallsInitiated", fields: [initiatorId], references: [id], onDelete: Cascade)
     participants     User[]             @relation("CallParticipants")
     CallParticipants CallParticipants[]
 }
@@ -174,8 +175,8 @@ model CallParticipants {
     joinedAt DateTime  @default(now())
     leftAt   DateTime?
 
-    call Call @relation(fields: [callId], references: [id])
-    user User @relation(fields: [userId], references: [id])
+    call Call @relation(fields: [callId], references: [id], onDelete: Cascade)
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
     @@unique([callId, userId])
 }
