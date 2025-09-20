@@ -27,7 +27,7 @@ router.use(authMiddleware);
  *         name: search
  *         schema:
  *           type: string
- *         description: Search users by name
+ *         description: Search users by name or email
  *       - in: query
  *         name: limit
  *         schema:
@@ -65,6 +65,8 @@ router.use(authMiddleware);
  *                   nullable: true
  *                 limit:
  *                   type: integer
+ *                 hasNextPage:
+ *                  type: boolean
  *       401:
  *         description: Unauthorized
  *       500:
