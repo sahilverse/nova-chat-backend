@@ -26,6 +26,9 @@ enum MessageType {
     PHOTO
     VIDEO
     AUDIO
+    LOCATION
+    CONTACT
+    STICKER
 }
 
 enum MessageStatus {
@@ -34,16 +37,24 @@ enum MessageStatus {
     READ
 }
 
+enum UserRoleInChat {
+    MEMBER
+    ADMIN
+    OWNER
+}
+
 // ---------------- MODELS ----------------
 
 model User {
     id           String    @id @default(cuid())
-    email        String    @unique
+    email        String?   @unique
     name         String
     password     String?
     profileImage String?
     isActive     Boolean   @default(true)
     lastSeen     DateTime?
+    isSuperUser  Boolean   @default(false)
+    isModerator  Boolean   @default(false)
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
@@ -55,29 +66,39 @@ model User {
     callsInitiated    Call[]               @relation("CallsInitiated")
     callsParticipated Call[]               @relation("CallParticipants")
     CallParticipants  CallParticipants[]
+    Chat              Chat[]
 }
 
 model Chat {
-    id      String  @id @default(cuid())
-    name    String?
-    isGroup Boolean @default(false)
+    id          String  @id @default(cuid())
+    name        String?
+    description String?
+    groupImage  String?
+    isGroup     Boolean @default(false)
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    members  UserChat[]
-    messages Message[]
-    calls    Call[]
+    members       UserChat[]
+    messages      Message[]
+    calls         Call[]
+    lastMessageId String?
+    lastMessage   Message?   @relation("ChatLastMessage", fields: [lastMessageId], references: [id])
+    createdById   String?
+    createdBy     User?      @relation(fields: [createdById], references: [id])
 }
 
 model UserChat {
-    id        String    @id @default(cuid())
-    chatId    String
-    userId    String
-    deletedAt DateTime?
-    archived  Boolean   @default(false)
-    muted     Boolean   @default(false)
-    joinedAt  DateTime  @default(now())
+    id         String         @id @default(cuid())
+    chatId     String
+    userId     String
+    role       UserRoleInChat @default(MEMBER)
+    deletedAt  DateTime?
+    archived   Boolean        @default(false)
+    muted      Boolean        @default(false)
+    pinned     Boolean        @default(false)
+    customName String?
+    joinedAt   DateTime       @default(now())
 
     chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
     user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -87,25 +108,31 @@ model UserChat {
 }
 
 model Message {
-    id        String      @id @default(cuid())
-    type      MessageType
-    content   String?
-    chatId    String
-    senderId  String
-    replyToId String?
+    id              String      @id @default(cuid())
+    type            MessageType
+    content         String?
+    metadata        Json?
+    chatId          String
+    senderId        String
+    replyToId       String?
+    forwardedFromId String?
+    isEdited        Boolean     @default(false)
 
     createdAt DateTime  @default(now())
     updatedAt DateTime  @updatedAt
     deletedAt DateTime?
 
-    chat    Chat      @relation(fields: [chatId], references: [id], onDelete: Cascade)
-    sender  User      @relation("MessagesSent", fields: [senderId], references: [id])
-    replyTo Message?  @relation("MessageReplies", fields: [replyToId], references: [id])
-    replies Message[] @relation("MessageReplies")
+    chat          Chat      @relation(fields: [chatId], references: [id], onDelete: Cascade)
+    sender        User      @relation("MessagesSent", fields: [senderId], references: [id])
+    replyTo       Message?  @relation("MessageReplies", fields: [replyToId], references: [id])
+    replies       Message[] @relation("MessageReplies")
+    forwardedFrom Message?  @relation("MessageForwards", fields: [forwardedFromId], references: [id])
+    forwards      Message[] @relation("MessageForwards")
 
     attachments Attachment[]
     reactions   MessageReaction[]
     statuses    MessageStatusEntry[]
+    Chat        Chat[]               @relation("ChatLastMessage")
 
     @@index([chatId, createdAt])
 }
@@ -115,6 +142,10 @@ model Attachment {
     messageId String
     type      MessageType
     url       String
+    thumbnail String?
+    mimeType  String?
+    fileSize  Int?
+    duration  Int?
 
     createdAt DateTime @default(now())
 
@@ -125,7 +156,7 @@ model MessageReaction {
     id        String @id @default(cuid())
     messageId String
     userId    String
-    type      String // emoji type, e.g., "like", "heart"
+    type      String
 
     createdAt DateTime @default(now())
 
@@ -156,7 +187,7 @@ model Call {
     initiatorId String
     startedAt   DateTime   @default(now())
     endedAt     DateTime?
-    duration    Int? // duration in seconds
+    duration    Int?
     callType    CallType
     callStatus  CallStatus
 
@@ -170,11 +201,12 @@ model Call {
 }
 
 model CallParticipants {
-    id       String    @id @default(cuid())
+    id       String     @id @default(cuid())
     callId   String
     userId   String
-    joinedAt DateTime  @default(now())
+    joinedAt DateTime   @default(now())
     leftAt   DateTime?
+    status   CallStatus @default(ONGOING)
 
     call Call @relation(fields: [callId], references: [id], onDelete: Cascade)
     user User @relation(fields: [userId], references: [id], onDelete: Cascade)
