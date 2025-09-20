@@ -61,23 +61,37 @@ export default class UserController {
         }
     }
 
-
     static async getUsers(req: Request, res: Response): Promise<any> {
         const search = req.query.search as string | undefined;
-        const limit = parseInt(req.query.limit as string) || 10;
+        const limit = Math.min(parseInt(req.query.limit as string) || 10, 50);
         const after = req.query.after as string | undefined;
 
         try {
-            const where = search
-                ? { name: { contains: search, mode: Prisma.QueryMode.insensitive }, isActive: true }
-                : {};
-
             const users = await prisma.user.findMany({
                 take: limit,
                 skip: after ? 1 : 0,
                 cursor: after ? { id: after } : undefined,
-                where,
-                orderBy: { id: 'asc' },
+                where: {
+                    isActive: true,
+                    ...(search && {
+                        OR: [
+                            { name: { contains: search, mode: Prisma.QueryMode.insensitive } },
+                            { email: { contains: search, mode: Prisma.QueryMode.insensitive } },
+                        ],
+                    }),
+                },
+                orderBy: search
+                    ? [
+                        {
+                            _relevance: {
+                                fields: ["name", "email"],
+                                search: search,
+                                sort: "desc",
+                            },
+                        },
+                        { id: "asc" },
+                    ]
+                    : { id: "asc" },
                 select: {
                     id: true,
                     name: true,
@@ -87,17 +101,18 @@ export default class UserController {
                 },
             });
 
-            const nextCursor = users.length ? users[users.length - 1].id : null;
-
-            return ResponseHandler.sendResponse(res, StatusCodes.OK, 'Users fetched successfully', {
+            return ResponseHandler.sendResponse(res, StatusCodes.OK, "Users fetched successfully", {
                 users,
-                nextCursor,
+                nextCursor: users.length ? users[users.length - 1].id : null,
+                hasNextPage: users.length === limit,
                 limit,
             });
         } catch (error) {
-            return ResponseHandler.sendError(res, StatusCodes.INTERNAL_SERVER_ERROR, 'Failed to fetch users');
+            return ResponseHandler.sendError(res, StatusCodes.INTERNAL_SERVER_ERROR, "Failed to fetch users");
         }
     }
+
+
 
 
 
