@@ -10,7 +10,7 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
     const token = req.headers.authorization?.split(" ")[1];
 
     if (!token) {
-        return ResponseHandler.sendError(res, StatusCodes.UNAUTHORIZED, "Authorization token not provided");
+        return ResponseHandler.sendError(res, StatusCodes.UNAUTHORIZED, "Unauthorized");
     }
 
     try {
@@ -29,13 +29,13 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
 
 
         if (!user) {
-            return ResponseHandler.sendError(res, StatusCodes.UNAUTHORIZED, "Authorization token is invalid");
+            return ResponseHandler.sendError(res, StatusCodes.UNAUTHORIZED, "Unauthorized");
         }
 
 
         req.user = user;
         next();
     } catch (error) {
-        return ResponseHandler.sendError(res, StatusCodes.UNAUTHORIZED, "Invalid authorization token");
+        return ResponseHandler.sendError(res, StatusCodes.UNAUTHORIZED, "Unauthorized");
     }
 };
