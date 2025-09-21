@@ -26,9 +26,6 @@ enum MessageType {
     PHOTO
     VIDEO
     AUDIO
-    LOCATION
-    CONTACT
-    STICKER
 }
 
 enum MessageStatus {
