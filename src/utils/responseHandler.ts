@@ -6,7 +6,7 @@ import { ZodSafeParseResult } from 'zod';
 
 
 export default class ResponseHandler {
-    static sendResponse(res: Response, statusCode: StatusCodes, message: string, Result?: any) {
+    static sendResponse(res: Response, statusCode: StatusCodes, message?: string, Result?: any) {
         return res.status(statusCode).json({
             StatusCode: statusCode,
             message,
@@ -14,7 +14,7 @@ export default class ResponseHandler {
         });
     }
 
-    static sendError(res: Response, statusCode: StatusCodes, message: string | Record<string, string>) {
+    static sendError(res: Response, statusCode: StatusCodes, message?: string | Record<string, string>) {
         return res.status(statusCode).json({
             StatusCode: statusCode,
             ErrorMessage: message
@@ -24,7 +24,7 @@ export default class ResponseHandler {
     static sendValidationError(res: Response, result: ZodSafeParseResult<any>) {
 
         if (result.success) return;
-        
+
         const errorMessage: Record<string, string> = {};
 
         result.error.issues.forEach((err) => {
