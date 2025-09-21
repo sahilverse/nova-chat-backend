@@ -3,8 +3,6 @@ import UserController from '../controllers/user.controller';
 import { authMiddleware } from '../middlewares/auth.middleware';
 
 const router = Router();
-
-// Apply auth middleware
 router.use(authMiddleware);
 
 /**
