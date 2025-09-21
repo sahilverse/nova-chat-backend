@@ -46,15 +46,16 @@ enum UserRoleInChat {
 // ---------------- MODELS ----------------
 
 model User {
-    id           String    @id @default(cuid())
-    email        String    @unique
-    name         String
-    password     String?
-    profileImage String?
-    isActive     Boolean   @default(true)
-    lastSeen     DateTime?
-    isSuperUser  Boolean   @default(false)
-    isModerator  Boolean   @default(false)
+    id                   String    @id @default(cuid())
+    email                String    @unique
+    name                 String
+    password             String?
+    profileImage         String?
+    profileImagePublicId String?
+    isActive             Boolean   @default(true)
+    lastSeen             DateTime?
+    isSuperUser          Boolean   @default(false)
+    isModerator          Boolean   @default(false)
 
     verificationCode    String?
     verificationExpires DateTime?
