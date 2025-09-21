@@ -11,3 +11,6 @@ export const JWT_REFRESH_EXPIRATION_DAYS = Number(process.env.JWT_REFRESH_EXPIRA
 
 export const CLIENT_URL = process.env.CLIENT_URL!;
 export const REDIS_URL = process.env.REDIS_URL!;
+
+export const EMAIL_USER = process.env.EMAIL_USER!;
+export const EMAIL_PASS = process.env.EMAIL_PASS!;

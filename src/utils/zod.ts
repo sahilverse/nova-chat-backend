@@ -51,16 +51,14 @@ export const changePasswordSchema = z.object({
 });
 
 
-// otpSchema
-export const otpSchema = z.object({
-    otp: z.string()
-        .min(1, "OTP is required")
-        .min(6, "OTP must be 6 characters"),
-});
-
-
 // resetPasswordSchema
 export const resetPasswordSchema = z.object({
+    email: z
+        .email()
+        .min(1, "Email is required")
+        .transform((val) => val.trim().toLowerCase()),
+
+    token: z.string().min(6, "OTP must be 6 characters"),
     newPassword: z
         .string()
         .min(6, "New Password must be at least 6 characters")
