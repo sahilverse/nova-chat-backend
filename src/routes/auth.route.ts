@@ -1,7 +1,8 @@
 import { Router } from "express";
 import AuthController from "../controllers/auth.controller";
-import { loginSchema, registerSchema, resetPasswordSchema } from "../utils";
+import { loginSchema, registerSchema, changePasswordSchema, resetPasswordSchema } from "../utils";
 import { validateRequest } from "../middlewares/validation.middleware";
+import { authMiddleware } from "../middlewares/auth.middleware";
 
 
 const router = Router();
@@ -169,6 +170,59 @@ router.post("/login", validateRequest(loginSchema), AuthController.loginUser);
  *         description: Internal server error
  */
 router.post("/logout", AuthController.logoutUser);
+
+
+
+/**
+ * @swagger
+ * /auth/change-password:
+ *   post:
+ *     summary: Change user password
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - currentPassword
+ *               - newPassword
+ *               - confirmNewPassword
+ *             properties:
+ *               currentPassword:
+ *                 type: string
+ *                 description: Current password of the user
+ *               newPassword:
+ *                 type: string
+ *                 description: New password (must meet complexity requirements)
+ *               confirmNewPassword:
+ *                 type: string
+ *                 description: Must match newPassword
+ *     responses:
+ *       200:
+ *         description: Password changed successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 StatusCode:
+ *                   type: number
+ *                 message:
+ *                   type: string
+ *       400:
+ *         description: Bad request (validation failed)
+ *       401:
+ *         description: Unauthorized (incorrect current password or missing token)
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Internal server error
+ */
+router.post("/change-password", authMiddleware, validateRequest(changePasswordSchema), AuthController.changePassword);
 
 
 

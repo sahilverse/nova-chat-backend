@@ -276,6 +276,37 @@ class AuthController {
         }
 
     }
+
+
+    static async changePassword(req: Request, res: Response): Promise<any> {
+        const userId = req.user?.id;
+
+        const { currentPassword, newPassword } = req.body;
+
+        try {
+            const user = await prisma.user.findUnique({ where: { id: userId } });
+            if (!user) {
+                return ResponseHandler.sendError(res, StatusCodes.NOT_FOUND, "User not found");
+            }
+
+            if (!(await BcryptUtils.comparePassword(currentPassword, user.password!))) {
+                return ResponseHandler.sendError(res, StatusCodes.UNAUTHORIZED, { "currentPassword": "Incorrect current password" });
+            }
+
+            const hashedPassword = await BcryptUtils.hashPassword(newPassword);
+
+            await prisma.user.update({
+                where: { id: userId },
+                data: { password: hashedPassword },
+            });
+
+            return ResponseHandler.sendResponse(res, StatusCodes.OK, "Password changed successfully");
+
+        } catch (error) {
+            return ResponseHandler.sendError(res, StatusCodes.INTERNAL_SERVER_ERROR, "Error changing password");
+        }
+
+    }
 }
 
 export default AuthController;
