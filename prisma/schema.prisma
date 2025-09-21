@@ -56,6 +56,9 @@ model User {
     isSuperUser  Boolean   @default(false)
     isModerator  Boolean   @default(false)
 
+    verificationCode    String?
+    verificationExpires DateTime?
+
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
