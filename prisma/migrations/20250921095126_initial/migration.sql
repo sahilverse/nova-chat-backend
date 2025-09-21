@@ -16,7 +16,7 @@ CREATE TYPE "public"."UserRoleInChat" AS ENUM ('MEMBER', 'ADMIN', 'OWNER');
 -- CreateTable
 CREATE TABLE "public"."User" (
     "id" TEXT NOT NULL,
-    "email" TEXT,
+    "email" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "password" TEXT,
     "profileImage" TEXT,
@@ -24,6 +24,8 @@ CREATE TABLE "public"."User" (
     "lastSeen" TIMESTAMP(3),
     "isSuperUser" BOOLEAN NOT NULL DEFAULT false,
     "isModerator" BOOLEAN NOT NULL DEFAULT false,
+    "verificationCode" TEXT,
+    "verificationExpires" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 

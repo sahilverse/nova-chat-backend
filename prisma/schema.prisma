@@ -47,7 +47,7 @@ enum UserRoleInChat {
 
 model User {
     id           String    @id @default(cuid())
-    email        String?   @unique
+    email        String    @unique
     name         String
     password     String?
     profileImage String?
