@@ -73,3 +73,15 @@ export const resetPasswordSchema = z.object({
     message: "Passwords don't match",
     path: ["confirmNewPassword"],
 })
+
+
+
+// updateProfileSchema
+export const profileImageSchema = z
+    .object({
+        originalname: z.string(),
+        mimetype: z.enum(["image/jpeg", "image/png", "image/webp"]),
+        size: z.number().max(4 * 1024 * 1024, "File size must be less than 4MB"),
+    })
+    .loose();
+
