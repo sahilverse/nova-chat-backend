@@ -267,10 +267,10 @@ class AuthController {
                 }
             });
 
-            const newAccessToken = await JwtUtils.generateResetPasswordToken(email);
+            const reset_token = JwtUtils.generateResetPasswordToken(email);
 
             return ResponseHandler.sendResponse(res, StatusCodes.OK, "Token verified successfully", {
-                access_token: newAccessToken
+                reset_token
             });
 
         } catch (error) {
