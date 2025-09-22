@@ -1,8 +1,9 @@
 import { Router } from "express";
 import AuthController from "../controllers/auth.controller";
-import { loginSchema, registerSchema, changePasswordSchema, resetPasswordSchema } from "../utils";
+import { loginSchema, registerSchema, changePasswordSchema, resetPasswordSchema, verifyOTPSchema } from "../utils";
 import { validateRequest } from "../middlewares/validation.middleware";
 import { authMiddleware } from "../middlewares/auth.middleware";
+import { resetSessionMiddleware } from "../middlewares/resetSession.middleware";
 
 
 const router = Router();
@@ -257,9 +258,9 @@ router.post("/forgot-password", AuthController.forgotPassword);
 
 /**
  * @swagger
- * /auth/reset-password:
+ * /auth/verify-reset-token:
  *   post:
- *     summary: Reset user password using verification token
+ *     summary: Verify reset OTP token and get reset session JWT
  *     tags: [Auth]
  *     requestBody:
  *       required: true
@@ -267,82 +268,46 @@ router.post("/forgot-password", AuthController.forgotPassword);
  *         application/json:
  *           schema:
  *             type: object
- *             required:
- *               - email
- *               - token
- *               - newPassword
  *             properties:
  *               email:
  *                 type: string
- *                 format: email
- *                 example: user@example.com
  *               token:
  *                 type: string
- *                 example: "123456"
- *                 description: Verification code sent to the user's email
+ *     responses:
+ *       200:
+ *         description: Token verified, reset session started
+ *       400:
+ *         description: Invalid or expired token
+ */
+router.post("/verify-reset-token", validateRequest(verifyOTPSchema), AuthController.verifyResetToken);
+
+
+/**
+ * @swagger
+ * /auth/reset-password:
+ *   post:
+ *     summary: Reset password using reset session JWT
+ *     tags: [Auth]
+ *     security:
+ *       - BearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
  *               newPassword:
  *                 type: string
- *                 minLength: 6
- *                 example: "NewPassword123!"
- *                 description: New password with uppercase, lowercase, number, and special character
+ *               confirmNewPassword:
+ *                type: string
+ *                description: Must match newPassword
  *     responses:
  *       200:
  *         description: Password reset successful
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 StatusCode:
- *                   type: integer
- *                   example: 200
- *                 message:
- *                   type: string
- *                   example: "Password reset successful"
- *                 Result:
- *                   type: object
- *                   nullable: true
- *       400:
- *         description: Invalid token or token expired / Bad request
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 StatusCode:
- *                   type: integer
- *                   example: 400
- *                 ErrorMessage:
- *                   type: object
- *                   example:
- *                     token: "Invalid or expired token"
- *       404:
- *         description: User not found
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 StatusCode:
- *                   type: integer
- *                   example: 404
- *                 ErrorMessage:
- *                   type: string
- *                   example: "User not found"
- *       500:
- *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 StatusCode:
- *                   type: integer
- *                   example: 500
- *                 ErrorMessage:
- *                   type: string
- *                   example: "Error processing request"
+ *       401:
+ *         description: Unauthorized or expired session
  */
-router.post("/reset-password", validateRequest(resetPasswordSchema), AuthController.resetPassword);
+router.post("/reset-password", resetSessionMiddleware, validateRequest(resetPasswordSchema), AuthController.resetPassword);
 
 export default router;

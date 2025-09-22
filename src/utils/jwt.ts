@@ -65,6 +65,23 @@ class JwtUtils {
         }
     }
 
+    public static generateResetPasswordToken(email: string): string {
+        const token = jwt.sign({ email, purpose: 'reset_password' }, this.accessSecret, {
+            expiresIn: '15m',
+        });
+        return token;
+    }
+
+    public static async verifyResetPasswordToken(token: string): Promise<string> {
+        try {
+            const decoded = jwt.verify(token, this.accessSecret) as JwtPayload;
+            if (decoded.purpose !== 'reset_password') throw new Error('Invalid token purpose');
+            return decoded.email;
+        } catch (err: any) {
+            throw new Error(`Invalid reset password token: ${err.message}`);
+        }
+    }
+
     private static verifyToken(token: string, secret: string, type: 'access' | 'refresh'): JwtPayload {
         try {
             const decoded = jwt.verify(token, secret);
@@ -74,6 +91,8 @@ class JwtUtils {
             throw new Error(`Invalid ${type} token: ${err.message}`);
         }
     }
+
+
 }
 
 export default JwtUtils;

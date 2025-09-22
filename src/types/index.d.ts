@@ -7,6 +7,7 @@ declare global {
         interface Request {
             user?: AuthUser;
             file?: Express.Multer.File;
+            resetUser?: { email: string };
         }
     }
 }

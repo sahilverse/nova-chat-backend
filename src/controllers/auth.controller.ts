@@ -7,6 +7,7 @@ import { CLIENT_URL, JWT_REFRESH_EXPIRATION_DAYS } from "../constants";
 import { BcryptUtils } from "../utils";
 import { sendEmail } from "../utils/email";
 import crypto from "crypto";
+import ca from "zod/v4/locales/ca.cjs";
 class AuthController {
 
     // Refresh user access token
@@ -238,8 +239,8 @@ class AuthController {
     }
 
 
-    static async resetPassword(req: Request, res: Response): Promise<any> {
-        const { email, token, newPassword } = req.body;
+    static async verifyResetToken(req: Request, res: Response): Promise<any> {
+        const { email, token } = req.body;
 
         try {
             const user = await prisma.user.findUnique({ where: { email } });
@@ -255,18 +256,45 @@ class AuthController {
             const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
 
             if (hashedToken !== user.verificationCode) {
-                return ResponseHandler.sendError(res, StatusCodes.BAD_REQUEST, { "token": "Invalid or expired token" });
+                return ResponseHandler.sendError(res, StatusCodes.BAD_REQUEST, { "token": "Invalid token" });
+            }
+
+            await prisma.user.update({
+                where: { email },
+                data: {
+                    verificationCode: null,
+                    verificationExpires: null
+                }
+            });
+
+            const newAccessToken = await JwtUtils.generateResetPasswordToken(email);
+
+            return ResponseHandler.sendResponse(res, StatusCodes.OK, "Token verified successfully", {
+                access_token: newAccessToken
+            });
+
+        } catch (error) {
+            return ResponseHandler.sendError(res, StatusCodes.INTERNAL_SERVER_ERROR, "Error processing request");
+        }
+    }
+
+
+    static async resetPassword(req: Request, res: Response): Promise<any> {
+        const { newPassword } = req.body;
+        const email = req.resetUser?.email;
+
+        try {
+            const user = await prisma.user.findUnique({ where: { email } });
+
+            if (!user) {
+                return ResponseHandler.sendError(res, StatusCodes.NOT_FOUND, "User not found");
             }
 
             const hashedPassword = await BcryptUtils.hashPassword(newPassword);
 
             await prisma.user.update({
                 where: { email },
-                data: {
-                    password: hashedPassword,
-                    verificationCode: null,
-                    verificationExpires: null
-                }
+                data: { password: hashedPassword }
             });
 
             return ResponseHandler.sendResponse(res, StatusCodes.OK, "Password reset successful");
