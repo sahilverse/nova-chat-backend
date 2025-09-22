@@ -1,6 +1,9 @@
 import { Router } from 'express';
 import UserController from '../controllers/user.controller';
 import { authMiddleware } from '../middlewares/auth.middleware';
+import upload from '../middlewares/multer.middleware';
+import { validateFile } from '../middlewares/validation.middleware';
+import { profileImageSchema } from '../utils';
 
 const router = Router();
 router.use(authMiddleware);
@@ -104,6 +107,71 @@ router.get('/', UserController.getUsers);
  *         description: Internal server error
  */
 router.get('/me', UserController.getUserProfile);
+
+
+/**
+ * @swagger
+ * /users/profile-image:
+ *   put:
+ *     summary: Update user profile image
+ *     tags: [Users]
+ *     security:
+ *       - BearerAuth: []   
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               profileImage:
+ *                 type: string
+ *                 format: binary
+ *                 description: Profile image file (jpg, png, webp, max 4MB)
+ *           required:
+ *             - profileImage
+ *     responses:
+ *       200:
+ *         description: Profile image updated successfully
+ *       400:
+ *         description: No file uploaded or invalid file
+ *       401:
+ *         description: Unauthorized (missing or invalid token)
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Failed to update profile picture
+ */
+router.put(
+    "/profile-image",
+    upload.single("profileImage"),
+    validateFile(profileImageSchema),
+    UserController.updateProfileImage
+);
+
+
+/** * @swagger
+ * /users/remove-profile-image:
+ *   put:
+ *     summary: Remove user profile image
+ *     tags: [Users]
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Profile image removed successfully
+ *       401:
+ *         description: Unauthorized (missing or invalid token)
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Failed to remove profile picture
+ */
+router.put(
+    "/remove-profile-image",
+    UserController.removeProfileImage
+)
+
 
 /**
  * @swagger
