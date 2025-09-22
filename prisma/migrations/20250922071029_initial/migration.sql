@@ -5,7 +5,7 @@ CREATE TYPE "public"."CallType" AS ENUM ('AUDIO', 'VIDEO');
 CREATE TYPE "public"."CallStatus" AS ENUM ('ONGOING', 'COMPLETED', 'MISSED');
 
 -- CreateEnum
-CREATE TYPE "public"."MessageType" AS ENUM ('TEXT', 'PHOTO', 'VIDEO', 'AUDIO', 'LOCATION', 'CONTACT', 'STICKER');
+CREATE TYPE "public"."AttachmentType" AS ENUM ('PHOTO', 'VIDEO', 'AUDIO');
 
 -- CreateEnum
 CREATE TYPE "public"."MessageStatus" AS ENUM ('SENT', 'DELIVERED', 'READ');
@@ -20,6 +20,7 @@ CREATE TABLE "public"."User" (
     "name" TEXT NOT NULL,
     "password" TEXT,
     "profileImage" TEXT,
+    "profileImagePublicId" TEXT,
     "isActive" BOOLEAN NOT NULL DEFAULT true,
     "lastSeen" TIMESTAMP(3),
     "isSuperUser" BOOLEAN NOT NULL DEFAULT false,
@@ -59,6 +60,7 @@ CREATE TABLE "public"."UserChat" (
     "pinned" BOOLEAN NOT NULL DEFAULT false,
     "customName" TEXT,
     "joinedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "lastReadMessageId" TEXT,
 
     CONSTRAINT "UserChat_pkey" PRIMARY KEY ("id")
 );
@@ -66,7 +68,6 @@ CREATE TABLE "public"."UserChat" (
 -- CreateTable
 CREATE TABLE "public"."Message" (
     "id" TEXT NOT NULL,
-    "type" "public"."MessageType" NOT NULL,
     "content" TEXT,
     "metadata" JSONB,
     "chatId" TEXT NOT NULL,
@@ -85,7 +86,7 @@ CREATE TABLE "public"."Message" (
 CREATE TABLE "public"."Attachment" (
     "id" TEXT NOT NULL,
     "messageId" TEXT NOT NULL,
-    "type" "public"."MessageType" NOT NULL,
+    "type" "public"."AttachmentType" NOT NULL,
     "url" TEXT NOT NULL,
     "thumbnail" TEXT,
     "mimeType" TEXT,
@@ -105,17 +106,6 @@ CREATE TABLE "public"."MessageReaction" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "MessageReaction_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "public"."MessageStatusEntry" (
-    "id" TEXT NOT NULL,
-    "messageId" TEXT NOT NULL,
-    "userId" TEXT NOT NULL,
-    "status" "public"."MessageStatus" NOT NULL,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "MessageStatusEntry_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -146,14 +136,6 @@ CREATE TABLE "public"."CallParticipants" (
     CONSTRAINT "CallParticipants_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
-CREATE TABLE "public"."_CallParticipants" (
-    "A" TEXT NOT NULL,
-    "B" TEXT NOT NULL,
-
-    CONSTRAINT "_CallParticipants_AB_pkey" PRIMARY KEY ("A","B")
-);
-
 -- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "public"."User"("email");
 
@@ -170,16 +152,7 @@ CREATE INDEX "Message_chatId_createdAt_idx" ON "public"."Message"("chatId", "cre
 CREATE UNIQUE INDEX "MessageReaction_messageId_userId_key" ON "public"."MessageReaction"("messageId", "userId");
 
 -- CreateIndex
-CREATE INDEX "MessageStatusEntry_messageId_userId_idx" ON "public"."MessageStatusEntry"("messageId", "userId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "MessageStatusEntry_messageId_userId_key" ON "public"."MessageStatusEntry"("messageId", "userId");
-
--- CreateIndex
 CREATE UNIQUE INDEX "CallParticipants_callId_userId_key" ON "public"."CallParticipants"("callId", "userId");
-
--- CreateIndex
-CREATE INDEX "_CallParticipants_B_index" ON "public"."_CallParticipants"("B");
 
 -- AddForeignKey
 ALTER TABLE "public"."Chat" ADD CONSTRAINT "Chat_lastMessageId_fkey" FOREIGN KEY ("lastMessageId") REFERENCES "public"."Message"("id") ON DELETE SET NULL ON UPDATE CASCADE;
@@ -215,12 +188,6 @@ ALTER TABLE "public"."MessageReaction" ADD CONSTRAINT "MessageReaction_messageId
 ALTER TABLE "public"."MessageReaction" ADD CONSTRAINT "MessageReaction_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."MessageStatusEntry" ADD CONSTRAINT "MessageStatusEntry_messageId_fkey" FOREIGN KEY ("messageId") REFERENCES "public"."Message"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "public"."MessageStatusEntry" ADD CONSTRAINT "MessageStatusEntry_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "public"."Call" ADD CONSTRAINT "Call_chatId_fkey" FOREIGN KEY ("chatId") REFERENCES "public"."Chat"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -231,9 +198,3 @@ ALTER TABLE "public"."CallParticipants" ADD CONSTRAINT "CallParticipants_callId_
 
 -- AddForeignKey
 ALTER TABLE "public"."CallParticipants" ADD CONSTRAINT "CallParticipants_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "public"."_CallParticipants" ADD CONSTRAINT "_CallParticipants_A_fkey" FOREIGN KEY ("A") REFERENCES "public"."Call"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "public"."_CallParticipants" ADD CONSTRAINT "_CallParticipants_B_fkey" FOREIGN KEY ("B") REFERENCES "public"."User"("id") ON DELETE CASCADE ON UPDATE CASCADE;

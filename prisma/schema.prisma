@@ -21,8 +21,7 @@ enum CallStatus {
     MISSED
 }
 
-enum MessageType {
-    TEXT
+enum AttachmentType {
     PHOTO
     VIDEO
     AUDIO
@@ -60,14 +59,12 @@ model User {
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    chatMembers       UserChat[]
-    messages          Message[]            @relation("MessagesSent")
-    reactions         MessageReaction[]
-    messageStatuses   MessageStatusEntry[]
-    callsInitiated    Call[]               @relation("CallsInitiated")
-    callsParticipated Call[]               @relation("CallParticipants")
-    CallParticipants  CallParticipants[]
-    Chat              Chat[]
+    chatMembers      UserChat[]
+    messages         Message[]          @relation("MessagesSent")
+    reactions        MessageReaction[]
+    callsInitiated   Call[]             @relation("CallsInitiated")
+    CallParticipants CallParticipants[]
+    chatsCreated     Chat[]
 }
 
 model Chat {
@@ -90,16 +87,17 @@ model Chat {
 }
 
 model UserChat {
-    id         String         @id @default(cuid())
-    chatId     String
-    userId     String
-    role       UserRoleInChat @default(MEMBER)
-    deletedAt  DateTime?
-    archived   Boolean        @default(false)
-    muted      Boolean        @default(false)
-    pinned     Boolean        @default(false)
-    customName String?
-    joinedAt   DateTime       @default(now())
+    id                String         @id @default(cuid())
+    chatId            String
+    userId            String
+    role              UserRoleInChat @default(MEMBER)
+    deletedAt         DateTime?
+    archived          Boolean        @default(false)
+    muted             Boolean        @default(false)
+    pinned            Boolean        @default(false)
+    customName        String?
+    joinedAt          DateTime       @default(now())
+    lastReadMessageId String?
 
     chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
     user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -109,15 +107,14 @@ model UserChat {
 }
 
 model Message {
-    id              String      @id @default(cuid())
-    type            MessageType
+    id              String  @id @default(cuid())
     content         String?
     metadata        Json?
     chatId          String
     senderId        String
     replyToId       String?
     forwardedFromId String?
-    isEdited        Boolean     @default(false)
+    isEdited        Boolean @default(false)
 
     createdAt DateTime  @default(now())
     updatedAt DateTime  @updatedAt
@@ -132,16 +129,16 @@ model Message {
 
     attachments Attachment[]
     reactions   MessageReaction[]
-    statuses    MessageStatusEntry[]
-    Chat        Chat[]               @relation("ChatLastMessage")
+
+    Chat Chat[] @relation("ChatLastMessage")
 
     @@index([chatId, createdAt])
 }
 
 model Attachment {
-    id        String      @id @default(cuid())
+    id        String         @id @default(cuid())
     messageId String
-    type      MessageType
+    type      AttachmentType
     url       String
     thumbnail String?
     mimeType  String?
@@ -167,21 +164,6 @@ model MessageReaction {
     @@unique([messageId, userId])
 }
 
-model MessageStatusEntry {
-    id        String        @id @default(cuid())
-    messageId String
-    userId    String
-    status    MessageStatus
-
-    updatedAt DateTime @updatedAt
-
-    message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
-    user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-    @@unique([messageId, userId])
-    @@index([messageId, userId])
-}
-
 model Call {
     id          String     @id @default(cuid())
     chatId      String
@@ -195,10 +177,9 @@ model Call {
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    chat             Chat               @relation(fields: [chatId], references: [id], onDelete: Cascade)
-    initiator        User               @relation("CallsInitiated", fields: [initiatorId], references: [id], onDelete: Cascade)
-    participants     User[]             @relation("CallParticipants")
-    CallParticipants CallParticipants[]
+    chat         Chat               @relation(fields: [chatId], references: [id], onDelete: Cascade)
+    initiator    User               @relation("CallsInitiated", fields: [initiatorId], references: [id], onDelete: Cascade)
+    participants CallParticipants[]
 }
 
 model CallParticipants {
