@@ -176,7 +176,7 @@ router.post("/logout", AuthController.logoutUser);
 /**
  * @swagger
  * /auth/change-password:
- *   post:
+ *   patch:
  *     summary: Change user password
  *     tags: [Auth]
  *     security:
@@ -222,7 +222,7 @@ router.post("/logout", AuthController.logoutUser);
  *       500:
  *         description: Internal server error
  */
-router.post("/change-password", authMiddleware, validateRequest(changePasswordSchema), AuthController.changePassword);
+router.patch("/change-password", authMiddleware, validateRequest(changePasswordSchema), AuthController.changePassword);
 
 
 
