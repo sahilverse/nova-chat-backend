@@ -9,6 +9,8 @@ const router = Router();
 
 // Auth Routes
 router.use("/auth", authRoutes);
+
+// User Routes
 router.use("/users", userRoutes);
 
 // Chat Routes
