@@ -15,3 +15,17 @@ export const validateRequest = (schema: ZodObject<any>) => {
         next();
     };
 }
+
+
+export const validateFile = (schema: ZodObject<any>) => {
+    return (req: Request, res: Response, next: NextFunction) => {
+
+        const result: ZodSafeParseResult<any> = schema.safeParse(req.file);
+
+        if (!result.success) {
+            ResponseHandler.sendValidationError(res, result);
+            return;
+        }
+        next();
+    }
+}
