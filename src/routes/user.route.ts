@@ -112,7 +112,7 @@ router.get('/me', UserController.getUserProfile);
 /**
  * @swagger
  * /users/profile-image:
- *   put:
+ *   patch:
  *     summary: Update user profile image
  *     tags: [Users]
  *     security:
@@ -142,7 +142,7 @@ router.get('/me', UserController.getUserProfile);
  *       500:
  *         description: Failed to update profile picture
  */
-router.put(
+router.patch(
     "/profile-image",
     upload.single("profileImage"),
     validateFile(profileImageSchema),
@@ -152,7 +152,7 @@ router.put(
 
 /** * @swagger
  * /users/remove-profile-image:
- *   put:
+ *   patch:
  *     summary: Remove user profile image
  *     tags: [Users]
  *     security:
@@ -167,7 +167,7 @@ router.put(
  *       500:
  *         description: Failed to remove profile picture
  */
-router.put(
+router.patch(
     "/remove-profile-image",
     UserController.removeProfileImage
 )
