@@ -4,6 +4,7 @@ import { loginSchema, registerSchema, changePasswordSchema, resetPasswordSchema,
 import { validateRequest } from "../middlewares/validation.middleware";
 import { authMiddleware } from "../middlewares/auth.middleware";
 import { resetSessionMiddleware } from "../middlewares/resetSession.middleware";
+import { forgotPasswordLimiter, verifyOTPLimiter, resetPasswordLimiter } from "../utils/limiter";
 
 
 const router = Router();
@@ -253,7 +254,7 @@ router.patch("/change-password", authMiddleware, validateRequest(changePasswordS
  *       500:
  *         description: Internal server error
  */
-router.post("/forgot-password", AuthController.forgotPassword);
+router.post("/forgot-password", forgotPasswordLimiter, AuthController.forgotPassword);
 
 
 /**
@@ -279,7 +280,7 @@ router.post("/forgot-password", AuthController.forgotPassword);
  *       400:
  *         description: Invalid or expired token
  */
-router.post("/verify-reset-token", validateRequest(verifyOTPSchema), AuthController.verifyResetToken);
+router.post("/verify-reset-token", verifyOTPLimiter, validateRequest(verifyOTPSchema), AuthController.verifyResetToken);
 
 
 /**
@@ -308,6 +309,6 @@ router.post("/verify-reset-token", validateRequest(verifyOTPSchema), AuthControl
  *       401:
  *         description: Unauthorized or expired session
  */
-router.post("/reset-password", resetSessionMiddleware, validateRequest(resetPasswordSchema), AuthController.resetPassword);
+router.post("/reset-password", resetPasswordLimiter, resetSessionMiddleware, validateRequest(resetPasswordSchema), AuthController.resetPassword);
 
 export default router;
