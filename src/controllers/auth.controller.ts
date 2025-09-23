@@ -200,7 +200,7 @@ class AuthController {
                 }
             });
 
-            const resetLink = `${CLIENT_URL}/reset-password?token=${resetToken}&email=${encodeURIComponent(email)}`;
+            const resetLink = `${CLIENT_URL}/accounts/reset-password?token=${resetToken}&email=${encodeURIComponent(email)}`;
 
             const subject = "Password Reset Request";
             const html = `
