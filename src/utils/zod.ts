@@ -52,13 +52,22 @@ export const changePasswordSchema = z.object({
 
 
 // verify OTP schema
-export const verifyOTPSchema = z.object({
-    email: z
-        .email()
-        .min(1, "Email is required")
-        .transform((val) => val.trim().toLowerCase()),
-    token: z.string().min(6, "OTP must be 6 characters"),
-});
+export const verifyOTPSchema = z.union([
+    // OTP
+    z.object({
+        email: z
+            .email()
+            .min(1, "Email is required")
+            .transform((val) => val.trim().toLowerCase()),
+        token: z.string().regex(/^\d{6}$/, "OTP must be exactly 6 digits"),
+    }),
+
+    // JWT 
+    z.object({
+        token: z.string().regex(/^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+$/, "Invalid token"),
+    }),
+]);
+
 
 
 // resetPasswordSchema

@@ -1,13 +1,22 @@
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
 import { redisClient } from "../config";
-import { JWT_ACCESS_SECRET, JWT_REFRESH_SECRET, JWT_REFRESH_EXPIRATION_DAYS, JWT_ACCESS_EXPIRATION_MINUTES } from '../constants';
+import {
+    JWT_ACCESS_SECRET,
+    JWT_REFRESH_SECRET,
+    JWT_REFRESH_EXPIRATION_DAYS,
+    JWT_ACCESS_EXPIRATION_MINUTES,
+    JWT_RESET_PASSWORD_EXPIRATION_MINUTES,
+    JWT_RESET_PASSWORD_SECRET
+} from '../constants';
 
 class JwtUtils {
     private static readonly accessSecret = JWT_ACCESS_SECRET;
     private static readonly refreshSecret = JWT_REFRESH_SECRET;
     private static readonly accessExpiration: number = JWT_ACCESS_EXPIRATION_MINUTES || 15;
     private static readonly refreshExpiration: number = JWT_REFRESH_EXPIRATION_DAYS || 1;
+    private static readonly resetPasswordSecret = JWT_RESET_PASSWORD_SECRET;
+    private static readonly resetPasswordExpiration: number = JWT_RESET_PASSWORD_EXPIRATION_MINUTES || 15;
 
 
     public static generateAccessToken(id: string): string {
@@ -37,12 +46,12 @@ class JwtUtils {
     }
 
     public static verifyAccessToken(token: string): JwtPayload {
-        return this.verifyToken(token, this.accessSecret, 'access');
+        return jwt.verify(token, this.accessSecret) as JwtPayload;
     }
 
     public static async verifyRefreshToken(token: string): Promise<JwtPayload> {
 
-        const payload = this.verifyToken(token, this.refreshSecret, 'refresh');
+        const payload = jwt.verify(token, this.refreshSecret) as JwtPayload;
 
         const jti = payload.jti;
         if (!jti) throw new Error('Refresh token missing jti');
@@ -56,13 +65,9 @@ class JwtUtils {
     }
 
     public static async revokeRefreshToken(token: string): Promise<void> {
-        try {
-            const decoded = jwt.verify(token, this.refreshSecret) as JwtPayload;
-            const jti = decoded.jti;
-            if (jti) await redisClient.del(`refresh_jti:${jti}`);
-        } catch (err) {
-            console.error('Error revoking refresh token:', err);
-        }
+        const decoded = jwt.verify(token, this.refreshSecret) as JwtPayload;
+        const jti = decoded.jti;
+        if (jti) await redisClient.del(`refresh_jti:${jti}`);
     }
 
     public static generateResetPasswordToken(email: string): string {
@@ -73,26 +78,27 @@ class JwtUtils {
     }
 
     public static async verifyResetPasswordToken(token: string): Promise<string> {
-        try {
-            const decoded = jwt.verify(token, this.accessSecret) as JwtPayload;
-            if (decoded.purpose !== 'reset_password') throw new Error('Invalid token purpose');
-            return decoded.email;
-        } catch (err: any) {
-            throw new Error(`Invalid reset password token: ${err.message}`);
-        }
+        const decoded = jwt.verify(token, this.accessSecret) as JwtPayload;
+        if (decoded.purpose !== 'reset_password') throw new Error('Invalid token purpose');
+        return decoded.email;
     }
 
-    private static verifyToken(token: string, secret: string, type: 'access' | 'refresh'): JwtPayload {
-        try {
-            const decoded = jwt.verify(token, secret);
-            if (typeof decoded === 'string') throw new Error(`${type} token payload is not an object`);
-            return decoded;
-        } catch (err: any) {
-            throw new Error(`Invalid ${type} token: ${err.message}`);
-        }
+    public static generatePasswordResetToken(payload: { email: string, otp: string }): string {
+
+        const token = jwt.sign(
+            { ...payload },
+            this.resetPasswordSecret,
+            { expiresIn: `${this.resetPasswordExpiration}m` }
+        );
+
+        return token;
     }
 
-
+    public static verifyPasswordResetToken(token: string): { email: string, otp: string } {
+        const decoded = jwt.verify(token, this.resetPasswordSecret);
+        if (typeof decoded === 'string') throw new Error('Invalid token');
+        return decoded as { email: string, otp: string };
+    }
 }
 
 export default JwtUtils;

@@ -192,6 +192,9 @@ class AuthController {
 
             const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
 
+            const payload = { email, otp: resetToken };
+            const jwtToken = JwtUtils.generatePasswordResetToken(payload);
+
             await prisma.user.update({
                 where: { email },
                 data: {
@@ -200,7 +203,7 @@ class AuthController {
                 }
             });
 
-            const resetLink = `${CLIENT_URL}/accounts/reset-password?token=${resetToken}&email=${encodeURIComponent(email)}`;
+            const resetLink = `${CLIENT_URL}/accounts/reset-password?token=${jwtToken}`;
 
             const subject = "Password Reset Request";
             const html = `
@@ -243,7 +246,28 @@ class AuthController {
         const { email, token } = req.body;
 
         try {
-            const user = await prisma.user.findUnique({ where: { email } });
+            let otpValue: string | undefined;
+            let emailValue: string | undefined;
+
+            try {
+                const payload = JwtUtils.verifyPasswordResetToken(token);
+
+                if (!payload.email || !payload.otp) {
+                    return ResponseHandler.sendError(res, StatusCodes.BAD_REQUEST, { "token": "Invalid token payload" });
+                }
+
+                emailValue = payload.email;
+                otpValue = payload.otp;
+
+            } catch (error) {
+                console.error("Error verifying password reset token:", error);
+
+                emailValue = email;
+                otpValue = token
+
+            }
+
+            const user = await prisma.user.findUnique({ where: { email: emailValue } });
 
             if (!user || !user.verificationCode || !user.verificationExpires) {
                 return ResponseHandler.sendError(res, StatusCodes.BAD_REQUEST, { "token": "Invalid token" });
@@ -253,21 +277,21 @@ class AuthController {
                 return ResponseHandler.sendError(res, StatusCodes.BAD_REQUEST, { "token": "Token has expired" });
             }
 
-            const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+            const hashedToken = crypto.createHash('sha256').update(otpValue!).digest('hex');
 
             if (hashedToken !== user.verificationCode) {
                 return ResponseHandler.sendError(res, StatusCodes.BAD_REQUEST, { "token": "Invalid token" });
             }
 
             await prisma.user.update({
-                where: { email },
+                where: { email: emailValue },
                 data: {
                     verificationCode: null,
                     verificationExpires: null
                 }
             });
 
-            const reset_token = JwtUtils.generateResetPasswordToken(email);
+            const reset_token = JwtUtils.generateResetPasswordToken(emailValue!);
 
             return ResponseHandler.sendResponse(res, StatusCodes.OK, "Token verified successfully", {
                 reset_token
