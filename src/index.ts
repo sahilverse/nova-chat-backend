@@ -10,23 +10,20 @@ const server = createServer(app);
 
 async function bootstrap() {
     try {
-        // Connect DB
         await prisma.$connect();
         console.log("✅ Connected to the database");
 
-        // Init Socket.IO
+        // Socket.IO
         const io = await SocketManager.init(server);
         console.log("✅ Socket.IO initialized");
 
-        // Register socket handlers
+        // socket handlers
         registerSocketHandlers(io);
 
-        // start server
         server.listen(PORT, () => {
             console.log(`🚀 Server is running at http://localhost:${PORT}`);
         });
 
-        // Handle graceful shutdown
         process.on("SIGINT", shutdown);
         process.on("SIGTERM", shutdown);
     } catch (error) {
@@ -36,7 +33,7 @@ async function bootstrap() {
 }
 
 async function shutdown() {
-    console.log("👋 Shutting down gracefully...");
+    console.log("Shutting down...");
     try {
         await SocketManager.shutdown();
         await prisma.$disconnect();
