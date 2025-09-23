@@ -14,12 +14,12 @@ export function createLimiter(max: number, windowMs: number, message?: string) {
 }
 
 export const forgotPasswordLimiter = createLimiter(
-    3,
+    5,
     15 * 60 * 1000
 );
 
 export const verifyOTPLimiter = createLimiter(
-    5,
+    3,
     10 * 60 * 1000
 );
 
