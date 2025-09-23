@@ -261,26 +261,55 @@ router.post("/forgot-password", forgotPasswordLimiter, AuthController.forgotPass
  * @swagger
  * /auth/verify-reset-token:
  *   post:
- *     summary: Verify reset OTP token and get reset session JWT
+ *     summary: Verify reset OTP token or reset JWT and start reset session
  *     tags: [Auth]
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             properties:
- *               email:
- *                 type: string
- *               token:
- *                 type: string
+ *             oneOf:
+ *               - type: object
+ *                 properties:
+ *                   email:
+ *                     type: string
+ *                     format: email
+ *                   token:
+ *                     type: string
+ *                     pattern: '^\d{6}$'
+ *                     description: "6-digit OTP sent to user's email"
+ *                 required:
+ *                   - email
+ *                   - token
+ *               - type: object
+ *                 properties:
+ *                   token:
+ *                     type: string
+ *                     pattern: '^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+$'
+ *                     description: "JWT reset token"
+ *                 required:
+ *                   - token
  *     responses:
  *       200:
  *         description: Token verified, reset session started
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:    
+ *                 reset_token:
+ *                   type: string
+ *                   description: JWT reset session token
  *       400:
  *         description: Invalid or expired token
  */
-router.post("/verify-reset-token", verifyOTPLimiter, validateRequest(verifyOTPSchema), AuthController.verifyResetToken);
+router.post(
+    "/verify-reset-token",
+    verifyOTPLimiter,
+    validateRequest(verifyOTPSchema),
+    AuthController.verifyResetToken
+);
+
 
 
 /**

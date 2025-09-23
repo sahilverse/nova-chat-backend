@@ -243,62 +243,104 @@ class AuthController {
 
 
     static async verifyResetToken(req: Request, res: Response): Promise<any> {
-        const { email, token } = req.body;
-
         try {
-            let otpValue: string | undefined;
-            let emailValue: string | undefined;
+            let emailValue: string;
+            let otpValue: string;
 
-            try {
-                const payload = JwtUtils.verifyPasswordResetToken(token);
+            // ─── JWT FLOW ────────────────────────────────
+            if (!req.body.email) {
+                const { token } = req.body;
 
-                if (!payload.email || !payload.otp) {
-                    return ResponseHandler.sendError(res, StatusCodes.BAD_REQUEST, { "token": "Invalid token payload" });
+                try {
+                    const payload = JwtUtils.verifyPasswordResetToken(token);
+
+                    if (!payload.email || !payload.otp) {
+                        return ResponseHandler.sendError(
+                            res,
+                            StatusCodes.BAD_REQUEST,
+                            { token: "Invalid token" }
+                        );
+                    }
+
+                    emailValue = payload.email;
+                    otpValue = payload.otp;
+
+                } catch (error) {
+                    return ResponseHandler.sendError(
+                        res,
+                        StatusCodes.BAD_REQUEST,
+                        { token: "Invalid or expired token" }
+                    );
                 }
 
-                emailValue = payload.email;
-                otpValue = payload.otp;
-
-            } catch (error) {
-                console.error("Error verifying password reset token:", error);
-
+                // ─── OTP FLOW ────────────────────────────────
+            } else {
+                const { email, token } = req.body;
                 emailValue = email;
-                otpValue = token
-
+                otpValue = token;
             }
 
-            const user = await prisma.user.findUnique({ where: { email: emailValue } });
+            // ─── VERIFY USER ─────────────────────────────
+            const user = await prisma.user.findUnique({
+                where: { email: emailValue }
+            });
 
             if (!user || !user.verificationCode || !user.verificationExpires) {
-                return ResponseHandler.sendError(res, StatusCodes.BAD_REQUEST, { "token": "Invalid token" });
+                return ResponseHandler.sendError(
+                    res,
+                    StatusCodes.BAD_REQUEST,
+                    { token: "Invalid token" }
+                );
             }
 
             if (user.verificationExpires < new Date()) {
-                return ResponseHandler.sendError(res, StatusCodes.BAD_REQUEST, { "token": "Token has expired" });
+                return ResponseHandler.sendError(
+                    res,
+                    StatusCodes.BAD_REQUEST,
+                    { token: "Token has expired" }
+                );
             }
 
-            const hashedToken = crypto.createHash('sha256').update(otpValue!).digest('hex');
+            // ─── MATCH OTP ──────────────────────────────
+            const hashedToken = crypto
+                .createHash("sha256")
+                .update(otpValue)
+                .digest("hex");
 
             if (hashedToken !== user.verificationCode) {
-                return ResponseHandler.sendError(res, StatusCodes.BAD_REQUEST, { "token": "Invalid token" });
+                return ResponseHandler.sendError(
+                    res,
+                    StatusCodes.BAD_REQUEST,
+                    { token: "Invalid token" }
+                );
             }
 
+            // ─── CLEAR USED OTP ─────────────────────────
             await prisma.user.update({
                 where: { email: emailValue },
                 data: {
                     verificationCode: null,
-                    verificationExpires: null
-                }
+                    verificationExpires: null,
+                },
             });
 
-            const reset_token = JwtUtils.generateResetPasswordToken(emailValue!);
+            // ─── ISSUE RESET JWT ────────────────────────
+            const reset_token = JwtUtils.generateResetPasswordToken(emailValue);
 
-            return ResponseHandler.sendResponse(res, StatusCodes.OK, "Token verified successfully", {
-                reset_token
-            });
+            return ResponseHandler.sendResponse(
+                res,
+                StatusCodes.OK,
+                "Token verified successfully",
+                { reset_token }
+            );
 
         } catch (error) {
-            return ResponseHandler.sendError(res, StatusCodes.INTERNAL_SERVER_ERROR, "Error processing request");
+            console.error("Error in verifyResetToken:", error);
+            return ResponseHandler.sendError(
+                res,
+                StatusCodes.INTERNAL_SERVER_ERROR,
+                "Error processing request"
+            );
         }
     }
 
