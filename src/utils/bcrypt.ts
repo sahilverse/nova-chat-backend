@@ -1,7 +1,7 @@
 import bcrypt from 'bcryptjs';
 
 class BcryptUtils {
-    private static readonly saltRounds = 10;
+    private static readonly saltRounds = 12;
 
     public static async hashPassword(password: string): Promise<string> {
         return await bcrypt.hash(password, this.saltRounds);
