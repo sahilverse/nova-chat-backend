@@ -6,7 +6,7 @@ import { setupSwagger } from './swagger';
 import { globalLimiter } from './utils/limiter';
 import helmet from 'helmet';
 import compression from 'compression';
-import { errorHandler } from './utils/ErrorHandler';
+
 
 
 const app: express.Application = express();
@@ -22,8 +22,6 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(globalLimiter);
 
-// Error Handler
-app.use(errorHandler);
 
 
 // Routes
