@@ -7,7 +7,7 @@ import { CLIENT_URL, JWT_REFRESH_EXPIRATION_DAYS } from "../constants";
 import { BcryptUtils } from "../utils";
 import { sendEmail } from "../utils/email";
 import crypto from "crypto";
-import ca from "zod/v4/locales/ca.cjs";
+
 class AuthController {
 
     // Refresh user access token
@@ -335,7 +335,6 @@ class AuthController {
             );
 
         } catch (error) {
-            console.error("Error in verifyResetToken:", error);
             return ResponseHandler.sendError(
                 res,
                 StatusCodes.INTERNAL_SERVER_ERROR,
