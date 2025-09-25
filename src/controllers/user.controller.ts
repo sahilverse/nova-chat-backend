@@ -8,7 +8,7 @@ import { CloudinaryService } from '../utils';
 
 
 export default class UserController {
-    static async getUserProfile(req: Request, res: Response): Promise<Response> {
+    static async getUserProfile(req: Request, res: Response): Promise<any> {
         try {
             const userId = req.user?.id;
 
@@ -36,7 +36,7 @@ export default class UserController {
         }
     }
 
-    static async updateProfileImage(req: Request, res: Response): Promise<Response> {
+    static async updateProfileImage(req: Request, res: Response): Promise<any> {
         try {
             const userId = req.user?.id;
             if (!userId) return ResponseHandler.sendError(res, StatusCodes.UNAUTHORIZED, 'Unauthorized');
@@ -71,7 +71,7 @@ export default class UserController {
         }
     }
 
-    static async removeProfileImage(req: Request, res: Response): Promise<Response> {
+    static async removeProfileImage(req: Request, res: Response): Promise<any> {
         try {
             const userId = req.user?.id;
             if (!userId) return ResponseHandler.sendError(res, StatusCodes.UNAUTHORIZED, 'Unauthorized');
@@ -105,7 +105,7 @@ export default class UserController {
         }
     }
 
-    static async getUserById(req: Request, res: Response): Promise<Response> {
+    static async getUserById(req: Request, res: Response): Promise<any> {
         try {
             const user = await prisma.user.findUnique({
                 where: {
@@ -131,7 +131,7 @@ export default class UserController {
         }
     }
 
-    static async getUsers(req: Request, res: Response): Promise<Response> {
+    static async getUsers(req: Request, res: Response): Promise<any> {
         const search = req.query.search as string | undefined;
         const limit = Math.min(parseInt(req.query.limit as string) || 10, 50);
         const after = req.query.after as string | undefined;
@@ -183,6 +183,16 @@ export default class UserController {
     }
 
 
+    static async changeUsername(req: Request, res: Response): Promise<any> {
+        try {
+            const userId = req.user?.id;
+            const { newName } = req.body;
+            if (!userId) return ResponseHandler.sendError(res, StatusCodes.UNAUTHORIZED, 'Unauthorized');
+
+        } catch (error) {
+            return ResponseHandler.sendError(res, StatusCodes.INTERNAL_SERVER_ERROR, 'Failed to change username');
+        }
+    }
 
 
 

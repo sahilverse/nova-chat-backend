@@ -6,7 +6,7 @@ import { StatusCodes } from "http-status-codes";
 
 
 
-export const authMiddleware = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+export const authMiddleware = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
     const token = req.headers.authorization?.split(" ")[1];
 
     if (!token) {
