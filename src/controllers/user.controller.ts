@@ -5,8 +5,6 @@ import { StatusCodes } from 'http-status-codes';
 import { Prisma } from '@prisma/client';
 import { CloudinaryService } from '../utils';
 
-
-
 export default class UserController {
     static async getUserProfile(req: Request, res: Response): Promise<any> {
         try {
