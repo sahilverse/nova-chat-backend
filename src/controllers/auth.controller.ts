@@ -254,7 +254,7 @@ class AuthController {
                 try {
                     const payload = JwtUtils.verifyPasswordResetToken(token);
 
-                    if (!payload.email || !payload.otp) {
+                    if (!payload.email || !payload.otp || payload.type !== 'password_reset') {
                         return ResponseHandler.sendError(
                             res,
                             StatusCodes.BAD_REQUEST,

@@ -86,7 +86,7 @@ class JwtUtils {
     public static generatePasswordResetToken(payload: { email: string, otp: string }): string {
 
         const token = jwt.sign(
-            { ...payload },
+            { ...payload, type: 'password_reset' },
             this.resetPasswordSecret,
             { expiresIn: `${this.resetPasswordExpiration}m` }
         );
@@ -94,10 +94,10 @@ class JwtUtils {
         return token;
     }
 
-    public static verifyPasswordResetToken(token: string): { email: string, otp: string } {
+    public static verifyPasswordResetToken(token: string): { email: string, otp: string, type: string } {
         const decoded = jwt.verify(token, this.resetPasswordSecret);
         if (typeof decoded === 'string') throw new Error('Invalid token');
-        return decoded as { email: string, otp: string };
+        return decoded as { email: string, otp: string, type: string };
     }
 }
 
