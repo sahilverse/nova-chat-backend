@@ -11,7 +11,7 @@ import crypto from "crypto";
 class AuthController {
 
     // Refresh user access token
-    static async refreshToken(req: Request, res: Response): Promise<any> {
+    static async refreshToken(req: Request, res: Response): Promise<Response> {
         const clientType = req.headers["x-client-type"] as string;
 
         const token = clientType === 'web' ? req.cookies?.refresh_token : req.body?.refresh_token;
@@ -74,7 +74,7 @@ class AuthController {
 
 
     //  Register a new user
-    static async registerUser(req: Request, res: Response): Promise<any> {
+    static async registerUser(req: Request, res: Response): Promise<Response> {
 
         const { name, email, password } = req.body;
 
@@ -98,7 +98,7 @@ class AuthController {
     }
 
     // Login user
-    static async loginUser(req: Request, res: Response): Promise<any> {
+    static async loginUser(req: Request, res: Response): Promise<Response> {
         const clientType = req.headers["x-client-type"] as string;
 
         const { email, password } = req.body;
@@ -155,7 +155,7 @@ class AuthController {
     }
 
     // Logout user
-    static async logoutUser(req: Request, res: Response): Promise<any> {
+    static async logoutUser(req: Request, res: Response): Promise<Response> {
         const token = req.cookies?.refresh_token;
 
         res.clearCookie("refresh_token");
@@ -173,7 +173,7 @@ class AuthController {
     }
 
 
-    static async forgotPassword(req: Request, res: Response): Promise<any> {
+    static async forgotPassword(req: Request, res: Response): Promise<Response> {
         const { email } = req.body;
 
         if (!email) {
@@ -242,7 +242,7 @@ class AuthController {
     }
 
 
-    static async verifyResetToken(req: Request, res: Response): Promise<any> {
+    static async verifyResetToken(req: Request, res: Response): Promise<Response> {
         try {
             let emailValue: string;
             let otpValue: string;
@@ -344,7 +344,7 @@ class AuthController {
     }
 
 
-    static async resetPassword(req: Request, res: Response): Promise<any> {
+    static async resetPassword(req: Request, res: Response): Promise<Response> {
         const { newPassword } = req.body;
         const email = req.resetUser?.email;
 
@@ -371,7 +371,7 @@ class AuthController {
     }
 
 
-    static async changePassword(req: Request, res: Response): Promise<any> {
+    static async changePassword(req: Request, res: Response): Promise<Response> {
         const userId = req.user?.id;
 
         const { currentPassword, newPassword } = req.body;

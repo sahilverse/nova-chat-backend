@@ -5,7 +5,7 @@ import { ResponseHandler } from "../utils";
 
 
 
-export async function resetSessionMiddleware(req: Request, res: Response, next: NextFunction): Promise<any> {
+export async function resetSessionMiddleware(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
     const authHeader = req.headers.authorization;
 
     if (!authHeader?.startsWith("Bearer ")) {
