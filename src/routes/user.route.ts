@@ -2,8 +2,8 @@ import { Router } from 'express';
 import UserController from '../controllers/user.controller';
 import { authMiddleware } from '../middlewares/auth.middleware';
 import upload from '../middlewares/multer.middleware';
-import { validateFile } from '../middlewares/validation.middleware';
-import { profileImageSchema } from '../utils';
+import { validateFile, validateRequest } from '../middlewares/validation.middleware';
+import { profileImageSchema, updateNameSchema } from '../utils';
 
 const router = Router();
 router.use(authMiddleware);
@@ -212,5 +212,49 @@ router.patch(
  *         description: Internal server error
  */
 router.get('/:id', UserController.getUserById);
+
+
+/**
+ * @swagger
+ * /users/change-name:
+ *   patch:
+ *     summary: Change the currently logged-in user's name
+ *     tags: [Users]
+ *     security:
+ *       - BearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               newName:
+ *                 type: string
+ *                 description: The new name for the user
+ *     responses:
+ *       200:
+ *         description: User details
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                 name:
+ *                   type: string
+ *                 email:
+ *                   type: string
+ *                 profileImage:
+ *                   type: string
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Internal server error
+ */
+router.patch('/change-name', validateRequest(updateNameSchema), UserController.changeUsername);
 
 export default router;

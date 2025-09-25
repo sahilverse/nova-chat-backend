@@ -98,3 +98,8 @@ export const profileImageSchema = z
     })
     .loose();
 
+
+// update user Name schema
+export const updateNameSchema = z.object({
+    name: z.string().min(1, "Name is required").transform((val) => val.trim())
+});

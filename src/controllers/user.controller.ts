@@ -189,6 +189,22 @@ export default class UserController {
             const { newName } = req.body;
             if (!userId) return ResponseHandler.sendError(res, StatusCodes.UNAUTHORIZED, 'Unauthorized');
 
+            const user = await prisma.user.update({
+                where: { id: userId },
+                data: { name: newName },
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    profileImage: true,
+                    createdAt: true,
+                },
+            });
+
+            if (!user) return ResponseHandler.sendError(res, StatusCodes.NOT_FOUND, 'User not found');
+
+            return ResponseHandler.sendResponse(res, StatusCodes.OK, 'Username changed successfully', { user });
+
         } catch (error) {
             return ResponseHandler.sendError(res, StatusCodes.INTERNAL_SERVER_ERROR, 'Failed to change username');
         }
