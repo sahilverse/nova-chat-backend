@@ -108,7 +108,12 @@ export default class ChatController {
                             id: chat.lastMessage.id,
                             text: chat.lastMessage.content,
                             createdAt: chat.lastMessage.createdAt,
-                            sender: chat.lastMessage.sender,
+                            sender: {
+                                id: chat.lastMessage.sender?.id,
+                                name: chat.lastMessage.sender?.name,
+                                profileImage: chat.lastMessage.sender?.profileImage,
+                                isActive: chat.lastMessage.sender?.isActive
+                            },
                             attachments: chat.lastMessage.attachments
                         }
                         : null,
@@ -203,9 +208,4 @@ export default class ChatController {
             return ResponseHandler.sendError(res, StatusCodes.INTERNAL_SERVER_ERROR, 'Internal server error');
         }
     }
-
-
-
-
-
 }
