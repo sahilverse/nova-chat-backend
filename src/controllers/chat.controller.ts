@@ -4,19 +4,8 @@ import { ResponseHandler } from '../utils';
 import { StatusCodes } from 'http-status-codes';
 
 import { paginate } from "../utils/pagination";
-import { Chat, User, UserChat } from '@prisma/client';
-
-type ChatWithMembersAndLastMessage = Chat & {
-    members: (UserChat & { user: User })[];
-    lastMessage: {
-        id: string;
-        content: string | null;
-        createdAt: Date;
-        sender: User | null;
-        attachments: any[];
-    } | null;
-};
-
+import { UserChat } from '@prisma/client';
+import { ChatWithMembersAndLastMessage } from '../types/types';
 export default class ChatController {
 
     static async getUserChats(req: Request, res: Response): Promise<any> {
