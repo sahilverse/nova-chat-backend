@@ -1,4 +1,4 @@
-import { Chat, User, UserChat } from "@prisma/client";
+import { Attachment, Chat, User, UserChat } from "@prisma/client";
 export interface AuthUser {
     id: string;
     name: string;
@@ -15,7 +15,7 @@ export type ChatWithMembersAndLastMessage = Chat & {
         content: string | null;
         createdAt: Date;
         sender: User | null;
-        attachments: any[];
+        attachments: Attachment[];
     } | null;
 };
 
