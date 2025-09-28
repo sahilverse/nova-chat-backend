@@ -132,13 +132,14 @@ export default class UserController {
     static async getUsers(req: Request, res: Response): Promise<any> {
         const search = req.query.search as string | undefined;
         const limit = Math.min(parseInt(req.query.limit as string) || 10, 50);
-        const after = req.query.after as string | undefined;
+        const cursor = req.query.cursor as string | undefined;
+
+        const currentUserId = req.user?.id;
 
         try {
             const users = await prisma.user.findMany({
-                take: limit,
-                skip: after ? 1 : 0,
-                cursor: after ? { id: after } : undefined,
+                take: limit + 1,
+                ...(cursor && { skip: 1, cursor: { id: cursor } }),
                 where: {
                     isActive: true,
                     ...(search && {
@@ -147,6 +148,7 @@ export default class UserController {
                             { email: { contains: search, mode: Prisma.QueryMode.insensitive } },
                         ],
                     }),
+                    id: { not: currentUserId },
                 },
                 orderBy: search
                     ? [
@@ -169,16 +171,24 @@ export default class UserController {
                 },
             });
 
+            let nextCursor: string | null = null;
+            if (users.length > limit) {
+                const nextItem = users.pop();
+                nextCursor = nextItem?.id || null;
+            }
+
             return ResponseHandler.sendResponse(res, StatusCodes.OK, "Users fetched successfully", {
                 users,
-                nextCursor: users.length ? users[users.length - 1].id : null,
-                hasNextPage: users.length === limit,
+                nextCursor,
+                hasNextPage: !!nextCursor,
                 limit,
             });
         } catch (error) {
+            console.error(error);
             return ResponseHandler.sendError(res, StatusCodes.INTERNAL_SERVER_ERROR, "Failed to fetch users");
         }
     }
+
 
 
     static async changeUsername(req: Request, res: Response): Promise<any> {
