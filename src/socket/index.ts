@@ -5,7 +5,7 @@ export const registerSocketHandlers = (io: Server) => {
     io.on("connection", (socket: Socket) => {
         console.log(`Socket connected: ${socket.id}`);
 
-        // Initialize chat socket handlers
+        // Chat socket handler
         new ChatSocket(socket, io);
 
         socket.on("disconnect", () => {
