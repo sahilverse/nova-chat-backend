@@ -4,6 +4,7 @@ import { ResponseHandler } from '../utils';
 import { StatusCodes } from 'http-status-codes';
 import { Prisma } from '@prisma/client';
 import { CloudinaryService } from '../utils';
+import { paginate } from "../utils";
 
 export default class UserController {
     static async getUserProfile(req: Request, res: Response): Promise<any> {
@@ -131,60 +132,53 @@ export default class UserController {
 
     static async getUsers(req: Request, res: Response): Promise<any> {
         const search = req.query.search as string | undefined;
-        const limit = Math.min(parseInt(req.query.limit as string) || 10, 50);
-        const cursor = req.query.cursor as string | undefined;
-
         const currentUserId = req.user?.id;
 
+        const limit = parseInt(req.query.limit as string);
+        const cursor = req.query.cursor as string | undefined;
+
         try {
-            const users = await prisma.user.findMany({
-                take: limit + 1,
-                ...(cursor && { skip: 1, cursor: { id: cursor } }),
-                where: {
-                    isActive: true,
-                    ...(search && {
-                        OR: [
-                            { name: { contains: search, mode: Prisma.QueryMode.insensitive } },
-                            { email: { contains: search, mode: Prisma.QueryMode.insensitive } },
-                        ],
-                    }),
-                    id: { not: currentUserId },
-                },
-                orderBy: search
-                    ? [
-                        {
-                            _relevance: {
-                                fields: ["name", "email"],
-                                search: search,
-                                sort: "desc",
+            const result = await paginate(
+                prisma.user,
+                {
+                    where: {
+                        isActive: true,
+                        ...(search && {
+                            OR: [
+                                { name: { contains: search, mode: Prisma.QueryMode.insensitive } },
+                                { email: { contains: search, mode: Prisma.QueryMode.insensitive } },
+                            ],
+                        }),
+                        id: { not: currentUserId },
+                    },
+                    orderBy: search
+                        ? [
+                            {
+                                _relevance: {
+                                    fields: ["name", "email"],
+                                    search: search,
+                                    sort: "desc",
+                                },
                             },
-                        },
-                        { id: "asc" },
-                    ]
-                    : { id: "asc" },
-                select: {
-                    id: true,
-                    name: true,
-                    email: true,
-                    profileImage: true,
-                    lastSeen: true,
+                            { id: "asc" },
+                        ]
+                        : { id: "asc" },
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                        profileImage: true,
+                        lastSeen: true,
+                    },
                 },
-            });
+                {
+                    limit,
+                    cursor
+                },
+            );
 
-            let nextCursor: string | null = null;
-            if (users.length > limit) {
-                const nextItem = users.pop();
-                nextCursor = nextItem?.id || null;
-            }
-
-            return ResponseHandler.sendResponse(res, StatusCodes.OK, "Users fetched successfully", {
-                users,
-                nextCursor,
-                hasNextPage: !!nextCursor,
-                limit,
-            });
+            return ResponseHandler.sendResponse(res, StatusCodes.OK, "Users fetched successfully", result);
         } catch (error) {
-            console.error(error);
             return ResponseHandler.sendError(res, StatusCodes.INTERNAL_SERVER_ERROR, "Failed to fetch users");
         }
     }
