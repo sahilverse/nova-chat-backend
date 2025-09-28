@@ -6,6 +6,7 @@ import { StatusCodes } from 'http-status-codes';
 import { paginate } from "../utils/pagination";
 import { UserChat } from '@prisma/client';
 import { ChatWithMembersAndLastMessage } from '../types/types';
+
 export default class ChatController {
 
     static async getUserChats(req: Request, res: Response): Promise<any> {
@@ -67,6 +68,22 @@ export default class ChatController {
             }
             );
 
+            const unreadCounts = await prisma.$queryRaw<
+                { chatId: string; unreadCount: number }[]
+            >`
+                SELECT m."chatId", COUNT(m.id)::int AS "unreadCount"
+                FROM "Message" m
+                INNER JOIN "UserChat" uc
+                ON uc."chatId" = m."chatId"
+                AND uc."userId" = ${userId}
+                WHERE m."senderId" != ${userId}
+                AND (uc."lastReadAt" IS NULL OR m."createdAt" > uc."lastReadAt")
+                GROUP BY m."chatId"
+            `;
+
+            const unreadCountMap = new Map(
+                unreadCounts.map((u) => [u.chatId, u.unreadCount])
+            );
 
             const chats = (result?.data).map((uc) => {
                 const { chat } = uc;
@@ -79,6 +96,7 @@ export default class ChatController {
                     displayName = other?.name ?? null;
                     displayImage = other?.profileImage ?? null;
                 }
+
 
                 return {
                     chatId: chat.id,
@@ -95,7 +113,9 @@ export default class ChatController {
                         }
                         : null,
                     pinned: uc.pinned,
-                    archived: uc.archived
+                    archived: uc.archived,
+                    unreadCount: unreadCountMap.get(chat.id) || 0,
+                    updatedAt: chat.updatedAt,
                 };
             });
 
@@ -107,7 +127,7 @@ export default class ChatController {
             });
 
         } catch (error) {
-            return ResponseHandler.sendError(res, StatusCodes.INTERNAL_SERVER_ERROR, "Failed to fetch chats");
+            return ResponseHandler.sendError(res, StatusCodes.INTERNAL_SERVER_ERROR, error as string);
         }
     }
 
