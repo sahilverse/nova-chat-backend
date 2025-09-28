@@ -182,7 +182,7 @@ router.post("/logout", AuthController.logoutUser);
  *     summary: Change user password
  *     tags: [Auth]
  *     security:
- *       - bearerAuth: []
+ *       - BearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
