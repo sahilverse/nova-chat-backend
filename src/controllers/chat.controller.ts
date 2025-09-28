@@ -127,7 +127,7 @@ export default class ChatController {
             });
 
         } catch (error) {
-            return ResponseHandler.sendError(res, StatusCodes.INTERNAL_SERVER_ERROR, error as string);
+            return ResponseHandler.sendError(res, StatusCodes.INTERNAL_SERVER_ERROR, "Internal server error");
         }
     }
 
