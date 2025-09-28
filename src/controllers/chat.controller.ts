@@ -105,13 +105,11 @@ export default class ChatController {
                 hasNextPage: result.hasNextPage,
                 limit: result.limit,
             });
+
         } catch (error) {
-            console.error(error);
             return ResponseHandler.sendError(res, StatusCodes.INTERNAL_SERVER_ERROR, "Failed to fetch chats");
         }
     }
-
-
 
 
     static async createOrGetPrivateChat(req: Request, res: Response): Promise<any> {
