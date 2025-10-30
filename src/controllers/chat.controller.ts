@@ -142,8 +142,8 @@ export default class ChatController {
             const { otherUserId } = req.body;
             const currentUserId = req.user?.id;
 
-            if (!otherUserId) {
-                return ResponseHandler.sendError(res, StatusCodes.BAD_REQUEST, 'Other User ID is required');
+            if (!otherUserId || !currentUserId) {
+                return ResponseHandler.sendError(res, StatusCodes.BAD_REQUEST, 'User IDs are required');
             }
 
             const otherUser = await prisma.user.findUnique({ where: { id: otherUserId } });
@@ -152,14 +152,9 @@ export default class ChatController {
                 return ResponseHandler.sendError(res, StatusCodes.NOT_FOUND, 'User not found');
             }
 
-            const existingChat = await prisma.chat.findFirst({
+            const existingChat = await prisma.chat.findUnique({
                 where: {
-                    isGroup: false,
-                    members: {
-                        every: {
-                            userId: { in: [otherUserId, currentUserId] }
-                        }
-                    }
+                    participantKey: [currentUserId, otherUserId].sort().join('_')
                 },
                 include: {
                     members: {
@@ -181,14 +176,17 @@ export default class ChatController {
                 return ResponseHandler.sendResponse(res, StatusCodes.OK, 'Chat fetched successfully', existingChat);
             }
 
+            // Create chat
+            const membersToCreate = currentUserId === otherUserId
+                ? [{ userId: currentUserId }]
+                : [{ userId: currentUserId }, { userId: otherUserId }];
+
             const chat = await prisma.chat.create({
                 data: {
                     isGroup: false,
+                    participantKey: [currentUserId, otherUserId].sort().join('_'),
                     members: {
-                        create: [
-                            { userId: currentUserId },
-                            { userId: otherUserId }
-                        ]
+                        create: membersToCreate
                     },
                     createdBy: { connect: { id: currentUserId } }
                 },
