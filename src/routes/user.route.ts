@@ -257,4 +257,58 @@ router.get('/:id', UserController.getUserById);
  */
 router.patch('/change-name', validateRequest(updateNameSchema), UserController.changeUsername);
 
+
+
+/**
+ * @swagger
+ * /users/deactivate:
+ *   patch:
+ *     summary: Deactivate the currently logged-in user's account
+ *     description: Marks the user account as inactive (soft delete). The user will no longer be able to log in until reactivated by an admin or support.
+ *     tags: [Users]
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Account deactivated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 message:
+ *                   type: string
+ *                   example: Account deactivated successfully
+ *       401:
+ *         description: Unauthorized (missing or invalid token)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: error
+ *                 message:
+ *                   type: string
+ *                   example: Unauthorized
+ *       500:
+ *         description: Failed to deactivate account
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: error
+ *                 message:
+ *                   type: string
+ *                   example: Failed to deactivate account
+ */
+router.patch('/deactivate', UserController.deactivateAccount);
+
 export default router;

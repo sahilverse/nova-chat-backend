@@ -212,7 +212,18 @@ export default class UserController {
         }
     }
 
-
-
+    static async deactivateAccount(req: Request, res: Response): Promise<any> {
+        try {
+            const userId = req.user?.id;
+            if (!userId) return ResponseHandler.sendError(res, StatusCodes.UNAUTHORIZED, 'Unauthorized');
+            await prisma.user.update({
+                where: { id: userId },
+                data: { isActive: false },
+            });
+            return ResponseHandler.sendResponse(res, StatusCodes.OK, 'Account deactivated successfully');
+        } catch (error) {
+            return ResponseHandler.sendError(res, StatusCodes.INTERNAL_SERVER_ERROR, 'Failed to deactivate account');
+        }
+    }
 
 }
