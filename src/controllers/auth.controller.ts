@@ -114,6 +114,13 @@ class AuthController {
                 return ResponseHandler.sendError(res, StatusCodes.UNAUTHORIZED, { "password": "Incorrect password" });
             }
 
+            if (!user.isActive) {
+                await prisma.user.update({
+                    where: { id: user.id },
+                    data: { isActive: true },
+                });
+            }
+
             const accessToken = JwtUtils.generateAccessToken(user.id);
             const { token: refreshToken } = await JwtUtils.generateRefreshToken(user.id);
 
