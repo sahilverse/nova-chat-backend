@@ -173,7 +173,15 @@ export default class ChatController {
             });
 
             if (existingChat) {
-                return ResponseHandler.sendResponse(res, StatusCodes.OK, 'Chat fetched successfully', existingChat);
+                const { participantKey, name, description, groupImage, ...chat } = existingChat;
+
+                const chatResponse = {
+                    ...chat,
+                    displayName: otherUser.name,
+                    displayImage: otherUser.profileImage,
+                };
+
+                return ResponseHandler.sendResponse(res, StatusCodes.OK, 'Chat fetched successfully', chatResponse);
             }
 
             // Create chat
@@ -199,7 +207,16 @@ export default class ChatController {
                 }
             });
 
-            return ResponseHandler.sendResponse(res, StatusCodes.CREATED, 'Chat created successfully', chat);
+
+            const { participantKey, name, description, groupImage, ...chatData } = chat;
+
+            const chatResponse = {
+                ...chatData,
+                displayName: otherUser.name,
+                displayImage: otherUser.profileImage,
+            };
+
+            return ResponseHandler.sendResponse(res, StatusCodes.CREATED, 'Chat created successfully', chatResponse);
 
         } catch (error) {
             console.error('Error in createOrGetPrivateChat:', error);
