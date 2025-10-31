@@ -143,84 +143,76 @@ export default class ChatController {
             const currentUserId = req.user?.id;
 
             if (!otherUserId || !currentUserId) {
-                return ResponseHandler.sendError(res, StatusCodes.BAD_REQUEST, 'User IDs are required');
+                return ResponseHandler.sendError(res, StatusCodes.BAD_REQUEST, "User IDs are required");
             }
 
-            const otherUser = await prisma.user.findUnique({ where: { id: otherUserId } });
+
+            const participantKey = [currentUserId, otherUserId].sort().join("_");
+
+
+            const [otherUser, existingChat] = await Promise.all([
+                prisma.user.findUnique({
+                    where: { id: otherUserId },
+                    select: { id: true, name: true, profileImage: true },
+                }),
+                prisma.chat.findUnique({
+                    where: { participantKey },
+                    include: {
+                        lastMessage: {
+                            include: {
+                                sender: { select: { id: true, name: true, profileImage: true } },
+                            },
+                        },
+                    },
+                }),
+            ]);
 
             if (!otherUser) {
-                return ResponseHandler.sendError(res, StatusCodes.NOT_FOUND, 'User not found');
+                return ResponseHandler.sendError(res, StatusCodes.NOT_FOUND, "User not found");
             }
 
-            const existingChat = await prisma.chat.findUnique({
-                where: {
-                    participantKey: [currentUserId, otherUserId].sort().join('_')
-                },
-                include: {
-                    members: {
-                        select: {
-                            user: {
-                                select: {
-                                    id: true, name: true, profileImage: true
-                                }
-                            }
-                        }
-                    },
-                    lastMessage: {
-                        include: { sender: { select: { id: true, name: true, profileImage: true } } }
-                    }
-                }
-            });
-
+            // If chat already exists
             if (existingChat) {
                 const { participantKey, name, description, groupImage, ...chat } = existingChat;
 
-                const chatResponse = {
+                return ResponseHandler.sendResponse(res, StatusCodes.OK, "Chat fetched successfully", {
                     ...chat,
                     displayName: otherUser.name,
                     displayImage: otherUser.profileImage,
-                };
-
-                return ResponseHandler.sendResponse(res, StatusCodes.OK, 'Chat fetched successfully', chatResponse);
+                });
             }
 
-            // Create chat
-            const membersToCreate = currentUserId === otherUserId
-                ? [{ userId: currentUserId }]
-                : [{ userId: currentUserId }, { userId: otherUserId }];
+            // Create a new private chat
+            const membersToCreate =
+                currentUserId === otherUserId
+                    ? [{ userId: currentUserId }]
+                    : [{ userId: currentUserId }, { userId: otherUserId }];
 
             const chat = await prisma.chat.create({
                 data: {
                     isGroup: false,
-                    participantKey: [currentUserId, otherUserId].sort().join('_'),
-                    members: {
-                        create: membersToCreate
-                    },
-                    createdBy: { connect: { id: currentUserId } }
+                    participantKey,
+                    members: { create: membersToCreate },
+                    createdBy: { connect: { id: currentUserId } },
                 },
-                include: {
-                    members: {
-                        select: {
-                            user: { select: { id: true, name: true, profileImage: true } }
-                        }
-                    }
-                }
+                select: {
+                    id: true,
+                    isGroup: true,
+                    createdAt: true,
+                    updatedAt: true,
+                },
             });
 
-
-            const { participantKey, name, description, groupImage, ...chatData } = chat;
-
-            const chatResponse = {
-                ...chatData,
+            return ResponseHandler.sendResponse(res, StatusCodes.CREATED, "Chat created successfully", {
+                ...chat,
                 displayName: otherUser.name,
                 displayImage: otherUser.profileImage,
-            };
-
-            return ResponseHandler.sendResponse(res, StatusCodes.CREATED, 'Chat created successfully', chatResponse);
+            });
 
         } catch (error) {
-            console.error('Error in createOrGetPrivateChat:', error);
-            return ResponseHandler.sendError(res, StatusCodes.INTERNAL_SERVER_ERROR, 'Internal server error');
+            console.error("Error in createOrGetPrivateChat:", error);
+            return ResponseHandler.sendError(res, StatusCodes.INTERNAL_SERVER_ERROR, "Internal server error");
         }
     }
+
 }
