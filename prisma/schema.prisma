@@ -84,7 +84,7 @@ model Chat {
     lastMessageId String?
     lastMessage   Message?   @relation("ChatLastMessage", fields: [lastMessageId], references: [id])
     createdById   String?
-    createdBy     User?      @relation(fields: [createdById], references: [id])
+    createdBy     User?      @relation(fields: [createdById], references: [id], onDelete: SetNull)
 }
 
 model UserChat {
@@ -123,7 +123,7 @@ model Message {
     deletedAt DateTime?
 
     chat          Chat      @relation(fields: [chatId], references: [id], onDelete: Cascade)
-    sender        User      @relation("MessagesSent", fields: [senderId], references: [id])
+    sender        User      @relation("MessagesSent", fields: [senderId], references: [id], onDelete: Cascade)
     replyTo       Message?  @relation("MessageReplies", fields: [replyToId], references: [id])
     replies       Message[] @relation("MessageReplies")
     forwardedFrom Message?  @relation("MessageForwards", fields: [forwardedFromId], references: [id])
@@ -132,7 +132,7 @@ model Message {
     attachments Attachment[]
     reactions   MessageReaction[]
 
-    Chat Chat[] @relation("ChatLastMessage")
+    chatAsLastMessage Chat[] @relation("ChatLastMessage")
 
     @@index([chatId, createdAt])
 }
