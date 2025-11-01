@@ -216,6 +216,71 @@ export default class ChatController {
     }
 
 
-    static async getChatById(req: Request, res: Response): Promise<any> {
+    static async getChatMessages(req: Request, res: Response): Promise<any> {
+        try {
+            const { id: chatId } = req.params;
+            const { cursor, limit } = req.query;
+            const userId = req.user?.id;
+
+            if (!chatId) {
+                return ResponseHandler.sendError(res, StatusCodes.BAD_REQUEST, "Chat ID is required");
+            }
+
+            if (!userId) {
+                return ResponseHandler.sendError(res, StatusCodes.UNAUTHORIZED, "Unauthorized");
+            }
+
+            const isMember = await prisma.userChat.findUnique({
+                where: { chatId_userId: { chatId, userId } },
+            });
+
+
+            if (!isMember) {
+                return ResponseHandler.sendError(res, StatusCodes.FORBIDDEN, "Access denied");
+            }
+
+            // Paginate messages
+            const paginated = await paginate(
+                prisma.message,
+                {
+                    where: { chatId },
+                    include: {
+                        sender: { select: { id: true, name: true, profileImage: true } },
+                        attachments: true,
+                        reactions: {
+                            select: {
+                                id: true,
+                                messageId: true,
+                                type: true,
+                                createdAt: true,
+                                user: { select: { id: true, name: true } },
+                            },
+                        },
+                        replyTo: {
+                            select: {
+                                id: true,
+                                content: true,
+                                sender: { select: { id: true, name: true } },
+                            },
+                        },
+                    },
+                    orderBy: { createdAt: "desc" },
+                },
+                {
+                    limit: Number(limit),
+                    cursor: cursor ? String(cursor) : undefined,
+                }
+            );
+
+            return ResponseHandler.sendResponse(
+                res,
+                StatusCodes.OK,
+                "Messages fetched successfully",
+                paginated
+            );
+        } catch (error) {
+            console.error("Error in getChatMessages:", error);
+            return ResponseHandler.sendError(res, StatusCodes.INTERNAL_SERVER_ERROR, "Internal server error");
+        }
     }
 }
