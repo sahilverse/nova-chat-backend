@@ -246,14 +246,21 @@ export default class ChatController {
                     where: { chatId },
                     include: {
                         sender: { select: { id: true, name: true, profileImage: true } },
-                        attachments: true,
-                        reactions: {
+                        attachments: {
                             select: {
                                 id: true,
-                                messageId: true,
+                                type: true,
+                                url: true,
+                                thumbnail: true,
+                                fileSize: true,
+                                duration: true,
+                            },
+                        },
+                        reactions: {
+                            select: {
                                 type: true,
                                 createdAt: true,
-                                user: { select: { id: true, name: true } },
+                                userId: true,
                             },
                         },
                         replyTo: {
@@ -263,6 +270,12 @@ export default class ChatController {
                                 sender: { select: { id: true, name: true } },
                             },
                         },
+                        MessagePin: {
+                            select: {
+                                pinnedAt: true,
+                                userId: true,
+                            }
+                        }
                     },
                     orderBy: { createdAt: "desc" },
                 },
