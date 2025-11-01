@@ -214,6 +214,111 @@ export default class ChatController {
     }
 
 
+    static async getChatById(req: Request, res: Response): Promise<any> {
+        try {
+            const { id: chatId } = req.params;
+            const userId = req.user?.id;
+
+            if (!chatId) {
+                return ResponseHandler.sendError(res, StatusCodes.BAD_REQUEST, "Chat ID is required");
+            }
+
+            if (!userId) {
+                return ResponseHandler.sendError(res, StatusCodes.UNAUTHORIZED, "Unauthorized");
+            }
+
+            const isMember = await prisma.userChat.findUnique({
+                where: { chatId_userId: { chatId, userId } },
+                select: { id: true },
+            });
+
+            if (!isMember) {
+                return ResponseHandler.sendError(res, StatusCodes.FORBIDDEN, "Access denied");
+            }
+
+            const senderSelect = { id: true, name: true, profileImage: true };
+            const INITIAL_MESSAGE_LIMIT = 10;
+
+            const [chat, messages, pinnedMessages] = await Promise.all([
+                prisma.chat.findUnique({
+                    where: { id: chatId },
+                    select: {
+                        id: true,
+                        name: true,
+                        description: true,
+                        isGroup: true,
+                        groupImage: true,
+                        members: {
+                            select: {
+                                role: true,
+                                user: { select: senderSelect },
+                            },
+                        },
+                        lastMessage: {
+                            select: {
+                                id: true,
+                                content: true,
+                                createdAt: true,
+                                attachments: true,
+                                sender: { select: senderSelect },
+                            },
+                        },
+                    },
+                }),
+
+                prisma.message.findMany({
+                    where: { chatId },
+                    include: {
+                        sender: { select: senderSelect },
+                        attachments: true,
+                        reactions: { select: { type: true, createdAt: true, userId: true } },
+                        replyTo: { select: { id: true, content: true, sender: { select: { id: true, name: true } } } },
+                        MessagePin: { select: { pinnedAt: true, userId: true } },
+                    },
+                    orderBy: { createdAt: "desc" },
+                    take: INITIAL_MESSAGE_LIMIT,
+                }),
+
+                prisma.message.findMany({
+                    where: { chatId, MessagePin: { some: {} } },
+                    select: {
+                        id: true,
+                        content: true,
+                        sender: { select: senderSelect },
+                        attachments: true,
+                        MessagePin: { select: { userId: true, pinnedAt: true } },
+                    },
+                    orderBy: { createdAt: "asc" },
+                }),
+            ]);
+
+            if (!chat) {
+                return ResponseHandler.sendError(res, StatusCodes.NOT_FOUND, "Chat not found");
+            }
+
+            const nextCursor = messages.length === INITIAL_MESSAGE_LIMIT
+                ? messages[messages.length - 1].id
+                : null;
+
+            const response = {
+                chat,
+                messages,
+                pinnedMessages,
+                pagination: {
+                    nextCursor,
+                    limit: INITIAL_MESSAGE_LIMIT,
+                },
+            };
+
+            return ResponseHandler.sendResponse(res, StatusCodes.OK, "Chat fetched successfully", response);
+
+        } catch (error) {
+            console.error("Error in getChatById:", error);
+            return ResponseHandler.sendError(res, StatusCodes.INTERNAL_SERVER_ERROR, "Internal server error");
+        }
+    }
+
+
     static async getChatMessages(req: Request, res: Response): Promise<any> {
         try {
             const { id: chatId } = req.params;
@@ -275,7 +380,7 @@ export default class ChatController {
                             }
                         }
                     },
-                    orderBy: { createdAt: "desc" },
+                    orderBy: { createdAt: "asc" },
                 },
                 {
                     limit: Number(limit),
