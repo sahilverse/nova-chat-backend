@@ -73,6 +73,7 @@ model User {
     CallParticipants      CallParticipants[]
     chatsCreated          Chat[]
     MessageDeliveryStatus MessageDeliveryStatus[]
+    MessagePin            MessagePin[]
 }
 
 model Chat {
@@ -103,7 +104,6 @@ model UserChat {
     deletedAt         DateTime?
     archived          Boolean        @default(false)
     muted             Boolean        @default(false)
-    pinned            Boolean        @default(false)
     customName        String?
     joinedAt          DateTime       @default(now())
     lastReadMessageId String?
@@ -144,6 +144,7 @@ model Message {
 
     chatAsLastMessage     Chat[]                  @relation("ChatLastMessage")
     MessageDeliveryStatus MessageDeliveryStatus[]
+    MessagePin            MessagePin[]
 
     @@index([chatId, createdAt])
 }
@@ -162,6 +163,19 @@ model MessageDeliveryStatus {
 
     @@unique([messageId, userId])
     @@index([userId, status])
+}
+
+model MessagePin {
+    id        String   @id @default(cuid())
+    messageId String
+    userId    String
+    pinnedAt  DateTime @default(now())
+
+    message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+    user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@unique([messageId, userId])
+    @@index([userId])
 }
 
 model Attachment {
