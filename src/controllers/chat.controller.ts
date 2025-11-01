@@ -304,10 +304,7 @@ export default class ChatController {
                 chat,
                 messages,
                 pinnedMessages,
-                pagination: {
-                    nextCursor,
-                    limit: INITIAL_MESSAGE_LIMIT,
-                },
+                nextCursor
             };
 
             return ResponseHandler.sendResponse(res, StatusCodes.OK, "Chat fetched successfully", response);
