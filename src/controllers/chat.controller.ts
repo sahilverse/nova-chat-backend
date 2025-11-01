@@ -173,7 +173,7 @@ export default class ChatController {
 
             // If chat already exists
             if (existingChat) {
-                const { name, description, groupImage, ...chat } = existingChat;
+                const { participantKey, name, description, groupImage, ...chat } = existingChat;
 
                 return ResponseHandler.sendResponse(res, StatusCodes.OK, "Chat fetched successfully", {
                     ...chat,
@@ -197,7 +197,6 @@ export default class ChatController {
                 },
                 select: {
                     id: true,
-                    participantKey: true,
                     isGroup: true,
                     createdAt: true,
                     updatedAt: true,
