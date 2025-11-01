@@ -108,13 +108,12 @@ export default class ChatController {
                             id: chat.lastMessage.id,
                             text: chat.lastMessage.content,
                             createdAt: chat.lastMessage.createdAt,
+                            editedAt: chat.lastMessage.editedAt,
                             sender: {
                                 id: chat.lastMessage.sender?.id,
                                 name: chat.lastMessage.sender?.name,
-                                profileImage: chat.lastMessage.sender?.profileImage,
-                                isActive: chat.lastMessage.sender?.isActive
                             },
-                            attachments: chat.lastMessage.attachments
+                            hasAttachments: chat.lastMessage.attachments.length > 0,
                         }
                         : null,
                     archived: uc.archived,
