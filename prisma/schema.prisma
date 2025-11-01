@@ -66,12 +66,13 @@ model User {
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    chatMembers      UserChat[]
-    messages         Message[]          @relation("MessagesSent")
-    reactions        MessageReaction[]
-    callsInitiated   Call[]             @relation("CallsInitiated")
-    CallParticipants CallParticipants[]
-    chatsCreated     Chat[]
+    chatMembers           UserChat[]
+    messages              Message[]               @relation("MessagesSent")
+    reactions             MessageReaction[]
+    callsInitiated        Call[]                  @relation("CallsInitiated")
+    CallParticipants      CallParticipants[]
+    chatsCreated          Chat[]
+    MessageDeliveryStatus MessageDeliveryStatus[]
 }
 
 model Chat {
@@ -141,9 +142,26 @@ model Message {
     attachments Attachment[]
     reactions   MessageReaction[]
 
-    chatAsLastMessage Chat[] @relation("ChatLastMessage")
+    chatAsLastMessage     Chat[]                  @relation("ChatLastMessage")
+    MessageDeliveryStatus MessageDeliveryStatus[]
 
     @@index([chatId, createdAt])
+}
+
+model MessageDeliveryStatus {
+    id        String        @id @default(cuid())
+    messageId String
+    userId    String
+    status    MessageStatus @default(SENT)
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+    user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@unique([messageId, userId])
+    @@index([userId, status])
 }
 
 model Attachment {
