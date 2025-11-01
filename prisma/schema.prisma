@@ -128,7 +128,7 @@ model Message {
 
     createdAt DateTime  @default(now())
     updatedAt DateTime  @updatedAt
-    EditedAt  DateTime?
+    editedAt  DateTime?
     deletedAt DateTime?
     unsentAt  DateTime?
 
