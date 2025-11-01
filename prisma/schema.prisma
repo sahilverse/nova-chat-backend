@@ -39,6 +39,13 @@ enum UserRoleInChat {
     OWNER
 }
 
+enum MessageType {
+    TEXT
+    SYSTEM
+    ATTACHMENT
+    TEXT_ATTACHMENT
+}
+
 // ---------------- MODELS ----------------
 
 model User {
@@ -109,18 +116,20 @@ model UserChat {
 }
 
 model Message {
-    id              String  @id @default(cuid())
+    id              String      @id @default(cuid())
     content         String?
     metadata        Json?
     chatId          String
     senderId        String
+    messageType     MessageType @default(TEXT)
     replyToId       String?
     forwardedFromId String?
-    isEdited        Boolean @default(false)
 
     createdAt DateTime  @default(now())
     updatedAt DateTime  @updatedAt
+    EditedAt  DateTime?
     deletedAt DateTime?
+    unsentAt  DateTime?
 
     chat          Chat      @relation(fields: [chatId], references: [id], onDelete: Cascade)
     sender        User      @relation("MessagesSent", fields: [senderId], references: [id], onDelete: Cascade)
@@ -148,6 +157,7 @@ model Attachment {
     duration  Int?
 
     createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
 
     message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
 }
@@ -159,6 +169,7 @@ model MessageReaction {
     type      String
 
     createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
 
     message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
     user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
