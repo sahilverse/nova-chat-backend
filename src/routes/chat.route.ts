@@ -199,5 +199,233 @@ router.post('/private', chatController.createOrGetPrivateChat);
  */
 router.get('/:id/messages', chatController.getChatMessages);
 
+/**
+ * @swagger
+ * /chats/{id}:
+ *   get:
+ *     summary: Get a specific chat by ID (including members, last message, and recent messages)
+ *     description: |
+ *       Retrieves detailed information about a chat including:
+ *       - Chat metadata (name, description, image, group info)
+ *       - Chat members and their roles
+ *       - The last message (for preview)
+ *       - The most recent 10 messages (for chat window)
+ *       - Any pinned messages
+ *       
+ *       Requires the user to be a member of the chat.
+ *     tags: [Chats]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID of the chat to retrieve
+ *     responses:
+ *       200:
+ *         description: Chat fetched successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     chat:
+ *                       type: object
+ *                       properties:
+ *                         id:
+ *                           type: string
+ *                         name:
+ *                           type: string
+ *                         description:
+ *                           type: string
+ *                         isGroup:
+ *                           type: boolean
+ *                         groupImage:
+ *                           type: string
+ *                         members:
+ *                           type: array
+ *                           items:
+ *                             type: object
+ *                             properties:
+ *                               role:
+ *                                 type: string
+ *                               user:
+ *                                 type: object
+ *                                 properties:
+ *                                   id:
+ *                                     type: string
+ *                                   name:
+ *                                     type: string
+ *                                   profileImage:
+ *                                     type: string
+ *                         lastMessage:
+ *                           type: object
+ *                           properties:
+ *                             id:
+ *                               type: string
+ *                             content:
+ *                               type: string
+ *                             createdAt:
+ *                               type: string
+ *                               format: date-time
+ *                             attachments:
+ *                               type: array
+ *                               items:
+ *                                 type: object
+ *                                 properties:
+ *                                   id:
+ *                                     type: string
+ *                                   type:
+ *                                     type: string
+ *                                   url:
+ *                                     type: string
+ *                             sender:
+ *                               type: object
+ *                               properties:
+ *                                 id:
+ *                                   type: string
+ *                                 name:
+ *                                   type: string
+ *                                 profileImage:
+ *                                   type: string
+ *                     messages:
+ *                       type: array
+ *                       description: Latest messages for the chat (ordered oldest → newest)
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           id:
+ *                             type: string
+ *                           content:
+ *                             type: string
+ *                           createdAt:
+ *                             type: string
+ *                             format: date-time
+ *                           sender:
+ *                             type: object
+ *                             properties:
+ *                               id:
+ *                                 type: string
+ *                               name:
+ *                                 type: string
+ *                               profileImage:
+ *                                 type: string
+ *                           attachments:
+ *                             type: array
+ *                             items:
+ *                               type: object
+ *                               properties:
+ *                                 id:
+ *                                   type: string
+ *                                 type:
+ *                                   type: string
+ *                                 url:
+ *                                   type: string
+ *                           reactions:
+ *                             type: array
+ *                             items:
+ *                               type: object
+ *                               properties:
+ *                                 type:
+ *                                   type: string
+ *                                 createdAt:
+ *                                   type: string
+ *                                   format: date-time
+ *                                 userId:
+ *                                   type: string
+ *                           replyTo:
+ *                             type: object
+ *                             nullable: true
+ *                             properties:
+ *                               id:
+ *                                 type: string
+ *                               content:
+ *                                 type: string
+ *                               sender:
+ *                                 type: object
+ *                                 properties:
+ *                                   id:
+ *                                     type: string
+ *                                   name:
+ *                                     type: string
+ *                           MessagePin:
+ *                             type: object
+ *                             nullable: true
+ *                             properties:
+ *                               pinnedAt:
+ *                                 type: string
+ *                                 format: date-time
+ *                               userId:
+ *                                 type: string
+ *                     pinnedMessages:
+ *                       type: array
+ *                       description: All pinned messages in the chat
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           id:
+ *                             type: string
+ *                           content:
+ *                             type: string
+ *                           attachments:
+ *                             type: array
+ *                             items:
+ *                               type: object
+ *                               properties:
+ *                                 id:
+ *                                   type: string
+ *                                 type:
+ *                                   type: string
+ *                                 url:
+ *                                   type: string
+ *                           sender:
+ *                             type: object
+ *                             properties:
+ *                               id:
+ *                                 type: string
+ *                               name:
+ *                                 type: string
+ *                               profileImage:
+ *                                 type: string
+ *                           MessagePin:
+ *                             type: object
+ *                             properties:
+ *                               pinnedAt:
+ *                                 type: string
+ *                                 format: date-time
+ *                               userId:
+ *                                 type: string
+ *                     pagination:
+ *                       type: object
+ *                       properties:
+ *                         nextCursor:
+ *                           type: string
+ *                           nullable: true
+ *                         limit:
+ *                           type: integer
+ *                         hasMore:
+ *                           type: boolean
+ *       400:
+ *         description: Chat ID is required
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Access denied
+ *       404:
+ *         description: Chat not found
+ *       500:
+ *         description: Internal server error
+ */
+router.get('/:id', chatController.getChatById);
+
 
 export default router;
