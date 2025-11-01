@@ -117,7 +117,6 @@ export default class ChatController {
                             attachments: chat.lastMessage.attachments
                         }
                         : null,
-                    pinned: uc.pinned,
                     archived: uc.archived,
                     unreadCount: unreadCountMap.get(chat.id) || 0,
                     updatedAt: chat.updatedAt,
