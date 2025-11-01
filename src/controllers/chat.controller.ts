@@ -275,7 +275,7 @@ export default class ChatController {
                         replyTo: { select: { id: true, content: true, sender: { select: { id: true, name: true } } } },
                         MessagePin: { select: { pinnedAt: true, userId: true } },
                     },
-                    orderBy: { createdAt: "desc" },
+                    orderBy: { createdAt: "asc" },
                     take: INITIAL_MESSAGE_LIMIT,
                 }),
 
