@@ -396,4 +396,45 @@ export default class ChatController {
             return ResponseHandler.sendError(res, StatusCodes.INTERNAL_SERVER_ERROR, "Internal server error");
         }
     }
+
+
+
+    static async deleteChatById(req: Request, res: Response): Promise<any> {
+
+        try {
+            const { id: chatId } = req.params;
+            const userId = req.user?.id;
+
+            if (!chatId) {
+                return ResponseHandler.sendError(res, StatusCodes.BAD_REQUEST, "Chat ID is required");
+            }
+
+            if (!userId) {
+                return ResponseHandler.sendError(res, StatusCodes.UNAUTHORIZED, "Unauthorized");
+            }
+
+            const isMember = await prisma.userChat.findUnique({
+                where: { chatId_userId: { chatId, userId } },
+            });
+
+            if (!isMember) {
+                return ResponseHandler.sendError(res, StatusCodes.FORBIDDEN, "Access denied");
+            }
+
+            await prisma.userChat.updateMany({
+                where: {
+                    chatId,
+                    userId,
+                    deletedAt: null,
+                },
+                data: {
+                    deletedAt: new Date(),
+                },
+            });
+            return ResponseHandler.sendResponse(res, StatusCodes.OK, "Chat deleted successfully");
+        } catch (error) {
+            console.error("Error in deleteChat:", error);
+            return ResponseHandler.sendError(res, StatusCodes.INTERNAL_SERVER_ERROR, "Internal server error");
+        }
+    }
 }

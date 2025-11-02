@@ -156,4 +156,36 @@ router.get('/:id/messages', chatController.getChatMessages);
 router.get('/:id', chatController.getChatById);
 
 
+/** 
+ * @swagger
+ * /chats/{id}:
+ *   delete:
+ *     summary: Delete a chat by ID
+ *     tags: [Chats]
+ *     security:
+ *       - BearerAuth: []
+ *   parameters:
+ *     - in: path
+ *       name: id
+ *       required: true
+ *       schema:
+ *         type: string
+ *       description: ID of the chat to delete
+ *   responses:
+ *     200:
+ *       description: Chat deleted successfully
+ *     400:
+ *       description: Chat ID is required
+ *     401:
+ *       description: Unauthorized
+ *     403:
+ *       description: Access denied
+ *     404:
+ *       description: Chat not found
+ *     500:
+ *       description: Internal server error
+ */
+router.delete('/:id', chatController.deleteChatById);
+
+
 export default router;
