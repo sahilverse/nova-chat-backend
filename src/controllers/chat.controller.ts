@@ -397,8 +397,6 @@ export default class ChatController {
         }
     }
 
-
-
     static async deleteChatById(req: Request, res: Response): Promise<any> {
 
         try {
@@ -421,20 +419,62 @@ export default class ChatController {
                 return ResponseHandler.sendError(res, StatusCodes.FORBIDDEN, "Access denied");
             }
 
-            await prisma.userChat.updateMany({
-                where: {
-                    chatId,
-                    userId,
-                    deletedAt: null,
-                },
-                data: {
-                    deletedAt: new Date(),
-                },
+            if (isMember.deletedAt) {
+                return ResponseHandler.sendError(res, StatusCodes.BAD_REQUEST, "Chat already deleted");
+            }
+
+            await prisma.userChat.update({
+                where: { chatId_userId: { chatId, userId } },
+                data: { deletedAt: new Date() },
             });
+
             return ResponseHandler.sendResponse(res, StatusCodes.OK, "Chat deleted successfully");
         } catch (error) {
             console.error("Error in deleteChat:", error);
             return ResponseHandler.sendError(res, StatusCodes.INTERNAL_SERVER_ERROR, "Internal server error");
         }
     }
+
+
+    static async archiveChatById(req: Request, res: Response): Promise<any> {
+        try {
+            const { id: chatId } = req.params;
+            const userId = req.user?.id;
+
+            if (!chatId) {
+                return ResponseHandler.sendError(res, StatusCodes.BAD_REQUEST, "Chat ID is required");
+            }
+
+            if (!userId) {
+                return ResponseHandler.sendError(res, StatusCodes.UNAUTHORIZED, "Unauthorized");
+            }
+
+            const isMember = await prisma.userChat.findUnique({
+                where: { chatId_userId: { chatId, userId } },
+            });
+
+            if (!isMember) {
+                return ResponseHandler.sendError(res, StatusCodes.FORBIDDEN, "Access denied");
+            }
+
+            if (isMember.archived) {
+                return ResponseHandler.sendError(res, StatusCodes.BAD_REQUEST, "Chat already archived");
+            }
+
+            if (isMember.deletedAt) {
+                return ResponseHandler.sendError(res, StatusCodes.BAD_REQUEST, "Cannot archive a deleted chat");
+            }
+
+            await prisma.userChat.update({
+                where: { chatId_userId: { chatId, userId } },
+                data: { archived: true },
+            });
+
+            return ResponseHandler.sendResponse(res, StatusCodes.OK, "Chat archived successfully");
+        } catch (error) {
+            console.error("Error in archiveChat:", error);
+            return ResponseHandler.sendError(res, StatusCodes.INTERNAL_SERVER_ERROR, "Internal server error");
+        }
+    }
+
 }
