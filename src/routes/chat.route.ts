@@ -188,4 +188,36 @@ router.get('/:id', chatController.getChatById);
 router.delete('/:id', chatController.deleteChatById);
 
 
+/**
+ * @swagger
+ * /chats/{id}/archive:
+ *   patch:
+ *     summary: Archive a chat by ID
+ *     tags: [Chats]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           description: ID of the chat to archive
+ *     responses:
+ *       200:
+ *         description: Chat archived successfully
+ *       400:
+ *         description: Chat ID is required
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Access denied
+ *       404:
+ *         description: Chat not found
+ *       500:
+ *         description: Internal server error
+ */
+router.patch('/:id/archive', chatController.archiveChatById);
+
+
 export default router;
