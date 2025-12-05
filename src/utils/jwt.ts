@@ -71,7 +71,7 @@ class JwtUtils {
     }
 
     public static generateResetPasswordSessionToken(email: string): string {
-        const token = jwt.sign({ email, purpose: 'reset_password' }, this.accessSecret, {
+        const token = jwt.sign({ email, purpose: 'reset_password_session' }, this.accessSecret, {
             expiresIn: '15m',
         });
         return token;
@@ -79,7 +79,7 @@ class JwtUtils {
 
     public static async verifyResetPasswordSessionToken(token: string): Promise<string> {
         const decoded = jwt.verify(token, this.accessSecret) as JwtPayload;
-        if (decoded.purpose !== 'reset_password') throw new Error('Invalid token purpose');
+        if (decoded.purpose !== 'reset_password_session') throw new Error('Invalid token purpose');
         return decoded.email;
     }
 
