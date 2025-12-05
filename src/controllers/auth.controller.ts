@@ -332,7 +332,7 @@ class AuthController {
             });
 
             // ─── ISSUE RESET JWT ────────────────────────
-            const reset_token = JwtUtils.generateResetPasswordToken(emailValue);
+            const reset_token = JwtUtils.generateResetPasswordSessionToken(emailValue);
 
             return ResponseHandler.sendResponse(
                 res,

@@ -15,7 +15,7 @@ export async function resetSessionMiddleware(req: Request, res: Response, next: 
     const token = authHeader.split(" ")[1];
 
     try {
-        const email = await JwtUtils.verifyResetPasswordToken(token);
+        const email = await JwtUtils.verifyResetPasswordSessionToken(token);
         req.resetUser = { email };
         next();
     } catch (error: any) {
